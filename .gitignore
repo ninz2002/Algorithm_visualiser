@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # Compiled output
@@ -38,5 +39,22 @@ testem.log
 /typings
 
 # System files
+=======
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+alg-vis/
+Lib/
+site-packages/
+
+# Node
+node_modules/
+
+# OS
+>>>>>>> ad259c2e216993b650956f768edd8162e018171d
 .DS_Store
 Thumbs.db
