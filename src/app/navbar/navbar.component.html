@@ -1,0 +1,38 @@
+<div class="navbar">
+  <div class="navbar-content">
+
+    <!-- LEFT: BRAND -->
+    <div class="navbar-left">
+      <span class="brand">AlgoViz</span>
+    </div>
+
+    <!-- CENTER: SEARCH -->
+    <div class="navbar-center">
+      <input
+        type="text"
+        placeholder="Search algorithms..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"
+/>
+
+    </div>
+
+    <!-- RIGHT: MODE -->
+    <div class="navbar-right">
+      <button
+        class="mode-toggle"
+        [class.active]="mode === 'learning'"
+        (click)="setMode('learning')">
+        Learning
+      </button>
+
+      <button
+        class="mode-toggle"
+        [class.active]="mode === 'challenge'"
+        (click)="setMode('challenge')">
+        Challenge
+      </button>
+    </div>
+
+  </div>
+</div>
