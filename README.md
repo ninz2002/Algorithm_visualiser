@@ -1,3 +1,4 @@
+
 # Algorithm Visualizer
 
 An interactive web application designed to visualize how algorithms work step by step, with a strong focus on conceptual understanding rather than execution speed or user accounts.
