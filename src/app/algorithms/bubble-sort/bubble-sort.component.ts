@@ -4,34 +4,31 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { AlgorithmService } from '../../services/algorithm.service';
 
-
-
 interface Step {
   step: number;
   line: number;
   action: string;
-  variables: { i?: number };
+  variables: { i?: number; j?: number; n?: number };
   data: number[];
   message: string;
 }
 
 @Component({
-  selector: 'app-linear-search',
+  selector: 'app-bubble-sort',
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
-  templateUrl: './linear-search.component.html',
-  styleUrls: ['./linear-search.component.css'],
+  templateUrl: './bubble-sort.component.html',
+  styleUrls: ['./bubble-sort.component.css'],
 })
-export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnInit {
+export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit {
 
   algorithmMeta: any = null;
 
   /* -------------------- DATA -------------------- */
   activeTab: 'overview' | 'visualization' | 'complexity' = 'visualization';
 
-  array: number[] = [15, 7, 23, 9, 42, 18, 31];
-  target = 42;
-  arrayInput = '15, 7, 23, 9, 42, 18, 31';
+  array: number[] = [64, 34, 25, 12, 22, 11, 90];
+  arrayInput = '64, 34, 25, 12, 22, 11, 90';
 
   steps: Step[] = [];
   currentStepIndex = 0;
@@ -56,24 +53,28 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
   @ViewChild('line3') line3!: ElementRef;
   @ViewChild('line4') line4!: ElementRef;
   @ViewChild('line5') line5!: ElementRef;
+  @ViewChild('line6') line6!: ElementRef;
+  @ViewChild('line7') line7!: ElementRef;
 
   private lastActiveLine = 0;
 
-  constructor(private http: HttpClient,
+  constructor(
+    private http: HttpClient,
     private algorithmService: AlgorithmService
   ) {}
+
   ngOnInit(): void {
-  this.algorithmService.getAlgorithm('linear-search')
-    .subscribe({
-      next: data => {
-        this.algorithmMeta = data;
-        console.log('ALGO META:', data);
-      },
-      error: err => {
-        console.error('Algorithm metadata load failed', err);
-      }
-    });
-}
+    this.algorithmService.getAlgorithm('bubble-sort')
+      .subscribe({
+        next: data => {
+          this.algorithmMeta = data;
+          console.log('ALGO META:', data);
+        },
+        error: err => {
+          console.error('Algorithm metadata load failed', err);
+        }
+      });
+  }
 
   /* -------------------- GETTERS -------------------- */
 
@@ -89,7 +90,7 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
 
   /* -------------------- BACKEND -------------------- */
 
-  runSearch(): void {
+  runSort(): void {
     this.parseArrayInput();
 
     if (!this.array.length) {
@@ -98,9 +99,8 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     }
 
     this.http
-      .post<{ steps: Step[] }>('http://localhost:5000/linear-search', {
+      .post<{ steps: Step[] }>('http://localhost:5000/bubble-sort', {
         array: this.array,
-        target: this.target,
       })
       .subscribe({
         next: res => {
@@ -208,21 +208,28 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
   }
 
   getLineExplanation(lineNumber: number): string {
-  switch (lineNumber) {
-    case 1:
-      return 'Starting the linear search function. We receive an array and a target value to find.';
-    case 2:
-      return `We start looping through each element in the array, one by one from index 0 to ${this.array.length - 1}.`;
-    case 3:
-      return `Comparing the current element at index ${this.currentStep?.variables?.i ?? 0} with our target value ${this.target}.`;
-    case 4:
-      return `Match found! The target value ${this.target} is at index ${this.currentStep?.variables?.i ?? 0}. Returning this index and stopping the search.`;
-    case 5:
-      return `We've checked all ${this.array.length} elements in the array and didn't find the target value ${this.target}. Returning -1 to indicate "not found".`;
-    default:
-      return '';
+    const step = this.currentStep;
+    if (!step) return '';
+
+    switch (lineNumber) {
+      case 1:
+        return 'Starting the bubble sort function. We receive an array that needs to be sorted.';
+      case 2:
+        return `Getting the length of the array: n = ${step.variables?.n ?? this.array.length}. This helps us know how many passes we need.`;
+      case 3:
+        return `Outer loop iteration ${(step.variables?.i ?? 0) + 1} of ${step.variables?.n ?? this.array.length}. Each pass will bubble the largest unsorted element to its position.`;
+      case 4:
+        return `Inner loop comparing adjacent elements. We check up to index ${(step.variables?.n ?? this.array.length) - (step.variables?.i ?? 0) - 1} since the last ${step.variables?.i ?? 0} elements are already sorted.`;
+      case 5:
+        return `Comparing elements at index ${step.variables?.j ?? 0} (${step.data[step.variables?.j ?? 0]}) and ${(step.variables?.j ?? 0) + 1} (${step.data[(step.variables?.j ?? 0) + 1]}). Checking if they need to be swapped.`;
+      case 6:
+        return `Swapping! Element ${step.data[step.variables?.j ?? 0]} at index ${step.variables?.j ?? 0} is greater than ${step.data[(step.variables?.j ?? 0) + 1]} at index ${(step.variables?.j ?? 0) + 1}, so we swap them.`;
+      case 7:
+        return 'Bubble sort complete! The array is now fully sorted and we return the result.';
+      default:
+        return '';
+    }
   }
-}
 
   /* -------------------- AUTO-SCROLL CODE -------------------- */
 
@@ -242,6 +249,8 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
       case 3: lineElement = this.line3; break;
       case 4: lineElement = this.line4; break;
       case 5: lineElement = this.line5; break;
+      case 6: lineElement = this.line6; break;
+      case 7: lineElement = this.line7; break;
     }
 
     if (lineElement && this.codeScroller) {
@@ -314,8 +323,8 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     switch (action) {
       case 'start': return '#3b82f6';
       case 'compare': return '#f59e0b';
-      case 'found': return '#10b981';
-      case 'not_found': return '#ef4444';
+      case 'swap': return '#ec4899';
+      case 'complete': return '#10b981';
       default: return '#6b7280';
     }
   }
@@ -324,8 +333,8 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     switch (action) {
       case 'start': return '🚀';
       case 'compare': return '🔍';
-      case 'found': return '✅';
-      case 'not_found': return '❌';
+      case 'swap': return '🔄';
+      case 'complete': return '✅';
       default: return '•';
     }
   }
@@ -334,22 +343,32 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     switch (action) {
       case 'start': return 'STARTING';
       case 'compare': return 'COMPARING';
-      case 'found': return 'FOUND';
-      case 'not_found': return 'NOT FOUND';
+      case 'swap': return 'SWAPPING';
+      case 'complete': return 'COMPLETE';
       default: return action.toUpperCase();
     }
   }
 
-  isCurrentIndex(index: number): boolean {
-    return this.currentStep?.variables?.i === index;
+  isComparingIndex(index: number): boolean {
+    if (!this.currentStep) return false;
+    const j = this.currentStep.variables?.j;
+    if (j === undefined) return false;
+    return index === j || index === j + 1;
   }
 
-  isFound(index: number): boolean {
-    return this.currentStep?.action === 'found' && this.isCurrentIndex(index);
+  isSwappingIndex(index: number): boolean {
+    if (!this.currentStep || this.currentStep.action !== 'swap') return false;
+    const j = this.currentStep.variables?.j;
+    if (j === undefined) return false;
+    return index === j || index === j + 1;
   }
 
-  isTarget(value: number): boolean {
-    return value === this.target;
+  isSorted(index: number): boolean {
+    if (!this.currentStep) return false;
+    const n = this.currentStep.variables?.n ?? this.array.length;
+    const i = this.currentStep.variables?.i ?? 0;
+    // Elements from (n - i) onwards are sorted
+    return index >= (n - i);
   }
 
   getSpeedLabel(): string {

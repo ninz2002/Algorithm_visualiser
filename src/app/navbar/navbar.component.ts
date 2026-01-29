@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, NavigationEnd } from '@angular/router';
 import { SearchService } from '../services/search.service';
-
-type Mode = 'learning' | 'challenge';
 
 @Component({
   selector: 'app-navbar',
@@ -13,13 +12,40 @@ type Mode = 'learning' | 'challenge';
   styleUrls: ['./navbar.component.css'],
 })
 export class NavbarComponent {
-  mode: Mode = 'learning';
+
   searchQuery = '';
+  currentRoute: 'home' | 'linear' | 'challenge' = 'home';
 
-  constructor(private searchService: SearchService) {}
+  constructor(
+    private searchService: SearchService,
+    private router: Router
+  ) {
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.detectRoute(event.urlAfterRedirects);
+      }
+    });
+  }
 
-  setMode(mode: Mode): void {
-    this.mode = mode;
+  private detectRoute(url: string) {
+    if (url === '/') {
+      this.currentRoute = 'home';
+    } else if (url.startsWith('/linear-search')) {
+      this.currentRoute = 'linear';
+    } else if (url.startsWith('/challenge')) {
+      this.currentRoute = 'challenge';
+    }
+  }
+
+  setMode(mode: 'learning' | 'challenge') {
+    // 🚫 Disable toggle on home
+    if (this.currentRoute === 'home') return;
+
+    if (mode === 'learning') {
+      this.router.navigate(['/linear-search']);
+    } else {
+      this.router.navigate(['/challenge']);
+    }
   }
 
   onSearchChange(): void {

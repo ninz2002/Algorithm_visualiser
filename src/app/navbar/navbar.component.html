@@ -19,20 +19,24 @@
 
     <!-- RIGHT: MODE -->
     <div class="navbar-right">
-      <button
-        class="mode-toggle"
-        [class.active]="mode === 'learning'"
-        (click)="setMode('learning')">
-        Learning
-      </button>
+     <button
+  class="mode-toggle"
+  [class.active]="currentRoute === 'linear'"
+  [disabled]="currentRoute === 'home'"
+  (click)="setMode('learning')">
+  Learning
+</button>
 
-      <button
-        class="mode-toggle"
-        [class.active]="mode === 'challenge'"
-        (click)="setMode('challenge')">
-        Challenge
-      </button>
-    </div>
+<button
+  class="mode-toggle"
+  [class.active]="currentRoute === 'challenge'"
+  [disabled]="currentRoute === 'home'"
+  (click)="setMode('challenge')">
+  Challenge
+</button>
+
+
+
 
   </div>
 </div>

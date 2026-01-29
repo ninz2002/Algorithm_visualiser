@@ -26,24 +26,24 @@
   <div class="tab-content" *ngIf="activeTab === 'overview'">
     <div class="overview-container">
       <div class="overview-hero">
-        <h1 class="overview-title">{{algorithmMeta?.name || "Linear Search"}}</h1>
-        <p class="overview-subtitle">Search one element at a time.</p>
+        <h1 class="overview-title">{{algorithmMeta?.name || "Bubble Sort"}}</h1>
+        <p class="overview-subtitle">Repeatedly swap adjacent elements if they're in the wrong order.</p>
       </div>
 
       <div class="overview-content">
         <div class="overview-section">
-          <div class="section-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+          <div class="section-icon"><i class="fa-solid fa-arrow-up-arrow-down"></i></div>
           <h2>What is it?</h2>
-          <p>{{algorithmMeta?.short_description || "Linear Search checks each element in a list, one by one, from start to finish. It's like reading a book page by page until you find the word you're looking for."}}</p>
+          <p>{{algorithmMeta?.short_description || "Bubble Sort works by repeatedly stepping through the list, comparing adjacent elements and swapping them if they're in the wrong order. The largest elements 'bubble up' to their correct positions."}}</p>
         </div>
 
         <div class="overview-section">
           <div class="section-icon"><i class="fa-solid fa-bullseye"></i></div>
           <h2>When to use it?</h2>
           <ul class="feature-list">
-            <li><strong>Small datasets</strong> — When you have a short list to search</li>
-            <li><strong>Unsorted data</strong> — Works on any order, no preparation needed</li>
-            <li><strong>Simplicity matters</strong> — Easy to understand and implement</li>
+            <li><strong>Educational purposes</strong> — Great for learning sorting concepts</li>
+            <li><strong>Small datasets</strong> — Works adequately for very short lists</li>
+            <li><strong>Nearly sorted data</strong> — Can detect if data is already sorted early</li>
           </ul>
         </div>
 
@@ -52,7 +52,7 @@
             <span class="lightbulb"><i class="fa-solid fa-lightbulb"></i></span>
             <span>Key Insight</span>
           </div>
-          <p>In the worst case, you might need to check every single element. If you're searching for something at the end of a long list, that's a lot of checking!</p>
+          <p>After each pass through the array, the largest unsorted element "bubbles" to its correct position at the end. This means you need fewer comparisons with each successive pass!</p>
         </div>
 
         <div class="cta-box">
@@ -83,23 +83,31 @@
           <pre class="code-block"><code><span class="code-line" 
       [class.active]="isLineActive(1)" 
       [class.dim]="!isLineActive(1) && currentStep"
-      #line1><span class="line-number">1</span><span class="keyword">def</span> <span class="function">linear_search</span>(arr, target):</span>
+      #line1><span class="line-number">1</span><span class="keyword">def</span> <span class="function">bubble_sort</span>(arr):</span>
 <span class="code-line" 
       [class.active]="isLineActive(2)" 
       [class.dim]="!isLineActive(2) && currentStep"
-      #line2><span class="line-number">2</span>    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(<span class="function">len</span>(arr)):</span>
+      #line2><span class="line-number">2</span>    n = <span class="function">len</span>(arr)</span>
 <span class="code-line" 
       [class.active]="isLineActive(3)" 
       [class.dim]="!isLineActive(3) && currentStep"
-      #line3><span class="line-number">3</span>        <span class="keyword">if</span> arr[i] == target:</span>
+      #line3><span class="line-number">3</span>    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(n):</span>
 <span class="code-line" 
       [class.active]="isLineActive(4)" 
       [class.dim]="!isLineActive(4) && currentStep"
-      #line4><span class="line-number">4</span>            <span class="keyword">return</span> i</span>
+      #line4><span class="line-number">4</span>        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="function">range</span>(<span class="number">0</span>, n - i - <span class="number">1</span>):</span>
 <span class="code-line" 
       [class.active]="isLineActive(5)" 
       [class.dim]="!isLineActive(5) && currentStep"
-      #line5><span class="line-number">5</span>    <span class="keyword">return</span> <span class="number">-1</span></span></code></pre>
+      #line5><span class="line-number">5</span>            <span class="keyword">if</span> arr[j] > arr[j + <span class="number">1</span>]:</span>
+<span class="code-line" 
+      [class.active]="isLineActive(6)" 
+      [class.dim]="!isLineActive(6) && currentStep"
+      #line6><span class="line-number">6</span>                arr[j], arr[j + <span class="number">1</span>] = arr[j + <span class="number">1</span>], arr[j]</span>
+<span class="code-line" 
+      [class.active]="isLineActive(7)" 
+      [class.dim]="!isLineActive(7) && currentStep"
+      #line7><span class="line-number">7</span>    <span class="keyword">return</span> arr</span></code></pre>
 
           @if (currentStep) {
             <div class="live-explanation">
@@ -114,7 +122,7 @@
           <div class="complexity-info">
             <div class="complexity-item">
               <span class="complexity-label">Time Complexity</span>
-              <span class="complexity-value">{{algorithmMeta?.time_complexity || 'O(n)'}}</span>
+              <span class="complexity-value">{{algorithmMeta?.time_complexity || 'O(n²)'}}</span>
             </div>
             <div class="complexity-item">
               <span class="complexity-label">Space Complexity</span>
@@ -150,7 +158,6 @@
           @if (steps.length > 0) {
             <div class="input-controls-compact">
               <span class="input-display">Array: {{ arrayInput }}</span>
-              <span class="input-display">Target: {{ target }}</span>
               <button class="edit-button" (click)="resetToEdit()"><i class="fa-duotone fa-solid fa-pen-to-square"></i> Edit</button>
             </div>
           }
@@ -173,12 +180,20 @@
                       {{ currentStep.message }}
                     </div>
 
-                    @if (currentStep.variables.i !== undefined) {
+                    @if (currentStep.action !== 'complete' && (currentStep.variables.i !== undefined || currentStep.variables.j !== undefined)) {
                       <div class="status-detail">
-                        Checking index
-                        <span class="highlight">
-                          {{ currentStep.variables.i }}
-                        </span>
+                        @if (currentStep.variables.i !== undefined) {
+                          Pass
+                          <span class="highlight">
+                            {{ currentStep.variables.i + 1 }}
+                          </span>
+                        }
+                        @if (currentStep.variables.j !== undefined) {
+                          · Position
+                          <span class="highlight">
+                            {{ currentStep.variables.j }}
+                          </span>
+                        }
                       </div>
                     }
                   </div>
@@ -190,41 +205,41 @@
                 </div>
               </div>
 
-              @if (currentStep.action === 'compare' && currentStep.variables.i !== undefined) {
+              @if (currentStep.action === 'compare' && currentStep.variables.j !== undefined) {
                 <div class="comparison-display">
                   <div class="compare-item current">
-                    <span class="compare-label">Current</span>
+                    <span class="compare-label">Index {{ currentStep.variables.j }}</span>
                     <span class="compare-value">
-                      {{ currentStep.data[currentStep.variables.i] }}
+                      {{ currentStep.data[currentStep.variables.j] }}
                     </span>
                   </div>
 
-                  <div class="compare-operator">⟷</div>
+                  <div class="compare-operator">{{ currentStep.data[currentStep.variables.j] > currentStep.data[currentStep.variables.j + 1] ? '>' : '≤' }}</div>
 
                   <div class="compare-item target">
-                    <span class="compare-label">Target</span>
-                    <span class="compare-value">{{ target }}</span>
+                    <span class="compare-label">Index {{ currentStep.variables.j + 1 }}</span>
+                    <span class="compare-value">{{ currentStep.data[currentStep.variables.j + 1] }}</span>
                   </div>
                 </div>
               }
 
               <div class="array-display">
-                @for (item of currentStep.data; track item; let idx = $index) {
+                @for (item of currentStep.data; track $index; let idx = $index) {
                   <div class="array-cell-wrapper">
                     <div class="cell-index">{{ idx }}</div>
 
                     <div class="array-cell"
-                         [class.active]="isCurrentIndex(idx)"
-                         [class.found]="isFound(idx)"
-                         [class.is-target]="isTarget(item)">
+                         [class.active]="isComparingIndex(idx)"
+                         [class.swapping]="isSwappingIndex(idx)"
+                         [class.sorted]="isSorted(idx) || currentStep.action === 'complete'">
                       <span class="cell-value">{{ item }}</span>
 
-                      @if (isCurrentIndex(idx)) {
+                      @if (isComparingIndex(idx) && currentStep.action !== 'complete') {
                         <div class="cell-glow"></div>
                       }
                     </div>
 
-                    @if (isCurrentIndex(idx)) {
+                    @if (isComparingIndex(idx) && currentStep.action !== 'complete') {
                       <div class="pointer">
                         <div class="pointer-arrow">▼</div>
                       </div>
@@ -253,27 +268,19 @@
           @if (!currentStep) {
             <div class="input-center-state">
               <div class="input-card">
-                <h3>Configure Your Search</h3>
-                <p class="input-subtitle">Enter an array and target value to visualize</p>
+                <h3>Configure Your Sort</h3>
+                <p class="input-subtitle">Enter an array to visualize the sorting process</p>
 
                 <div class="input-form">
                   <div class="form-group">
                     <label>Array (comma-separated)</label>
                     <input type="text"
                            [(ngModel)]="arrayInput"
-                           placeholder="15, 7, 23, 9, 42, 18, 31"
+                           placeholder="64, 34, 25, 12, 22, 11, 90"
                            class="input-field" />
                   </div>
 
-                  <div class="form-group">
-                    <label>Target Value</label>
-                    <input type="number"
-                           [(ngModel)]="target"
-                           placeholder="42"
-                           class="input-field" />
-                  </div>
-
-                  <button class="run-button-large" (click)="runSearch()">
+                  <button class="run-button-large" (click)="runSort()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                       <polygon points="5 3 19 12 5 21 5 3"/>
                     </svg>
@@ -343,7 +350,7 @@
       
       <div class="complexity-hero">
         <h1 class="complexity-title">Performance Analysis</h1>
-        <p class="complexity-subtitle">Understanding how {{algorithmMeta?.name || 'Linear Search'}} performs</p>
+        <p class="complexity-subtitle">Understanding how {{algorithmMeta?.name || 'Bubble Sort'}} performs</p>
       </div>
 
       <div class="complexity-grid">
@@ -354,22 +361,23 @@
             <div class="card-icon"><i class="fa-regular fa-stopwatch"></i></div>
             <h2>Time Complexity</h2>
           </div>
-          <div class="big-o">{{algorithmMeta?.time_complexity || 'O(n)'}}</div>
+          <div class="big-o">{{algorithmMeta?.time_complexity || 'O(n²)'}}</div>
           <div class="card-content">
             <h3>What does this mean?</h3>
-            <p>The time it takes grows <strong>linearly</strong> with the size of the array. If you double the array size, you double the search time in the worst case.</p>
+            <p>The time it takes grows <strong>quadratically</strong> with the size of the array. If you double the array size, the sort time increases by roughly 4 times.</p>
             
-            <h3>Why {{algorithmMeta?.time_complexity || 'O(n)'}}?</h3>
-            <p>In the worst-case scenario, the target element is either:</p>
+            <h3>Why {{algorithmMeta?.time_complexity || 'O(n²)'}}?</h3>
+            <p>In the worst-case scenario:</p>
             <ul>
-              <li>At the <strong>last position</strong> in the array</li>
-              <li><strong>Not present</strong> at all</li>
+              <li>The outer loop runs <strong>n times</strong> (one for each element)</li>
+              <li>The inner loop runs <strong>up to n times</strong> for each outer iteration</li>
+              <li>This gives us n × n = n² comparisons</li>
             </ul>
-            <p>In both cases, we check <em>every single element</em> — that's n comparisons for an array of size n.</p>
+            <p>For an array of size n, we make approximately n²/2 comparisons and swaps in the worst case.</p>
 
             <div class="example-box">
               <div class="example-title">Real-world example</div>
-              <p>Imagine searching for a specific card in a deck of 52 cards by checking each card one by one. Worst case? You check all 52.</p>
+              <p>Sorting 10 cards takes ~50 comparisons. Sorting 100 cards? That's ~5,000 comparisons! The growth is exponential.</p>
             </div>
           </div>
         </div>
@@ -383,19 +391,20 @@
           <div class="big-o">{{algorithmMeta?.space_complexity || 'O(1)'}}</div>
           <div class="card-content">
             <h3>What does this mean?</h3>
-            <p>Linear Search uses a <strong>constant</strong> amount of extra memory, regardless of how big the input array is.</p>
+            <p>Bubble Sort uses a <strong>constant</strong> amount of extra memory, regardless of the input array size.</p>
 
             <h3>Why {{algorithmMeta?.space_complexity || 'O(1)'}}?</h3>
             <p>We only need:</p>
             <ul>
-              <li>One variable to track the <strong>current index</strong></li>
+              <li>A few variables to track <strong>loop indices</strong> (i, j)</li>
+              <li>A temporary variable for <strong>swapping</strong></li>
               <li>No additional arrays or data structures</li>
             </ul>
-            <p>Whether we're searching through 10 elements or 10 million, we use the same tiny amount of memory.</p>
+            <p>Bubble Sort is an "in-place" sorting algorithm, meaning it sorts the array without needing extra space proportional to input size.</p>
 
             <div class="example-box">
               <div class="example-title">Real-world example</div>
-              <p>Like using your finger to point at each card while searching. You don't need extra space — just your finger!</p>
+              <p>Like organizing books on a shelf by repeatedly swapping adjacent ones. You don't need an extra shelf!</p>
             </div>
           </div>
         </div>
@@ -416,18 +425,18 @@
           <tbody>
             <tr class="best-case">
               <td><strong>Best Case</strong></td>
-              <td>{{algorithmMeta?.best_case || 'O(1)'}}</td>
-              <td>Target is the first element</td>
+              <td>{{algorithmMeta?.best_case || 'O(n)'}}</td>
+              <td>Array is already sorted (with optimization)</td>
             </tr>
             <tr class="average-case">
               <td><strong>Average Case</strong></td>
-              <td>{{algorithmMeta?.average_case || 'O(n/2) → O(n)'}}</td>
-              <td>Target is somewhere in the middle</td>
+              <td>{{algorithmMeta?.average_case || 'O(n²)'}}</td>
+              <td>Elements in random order</td>
             </tr>
             <tr class="worst-case">
               <td><strong>Worst Case</strong></td>
-              <td>{{algorithmMeta?.worst_case || 'O(n)'}}</td>
-              <td>Target is last or not present</td>
+              <td>{{algorithmMeta?.worst_case || 'O(n²)'}}</td>
+              <td>Array is sorted in reverse order</td>
             </tr>
           </tbody>
         </table>

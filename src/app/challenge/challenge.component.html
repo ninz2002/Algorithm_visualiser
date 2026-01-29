@@ -1,0 +1,84 @@
+<div class="challenge-page">
+
+  @if (!challengeFinished) {
+
+    <!-- ===== PLAYING STATE ===== -->
+
+    <div class="challenge-header">
+      <div class="challenge-badge">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <h2 class="challenge-title">Challenge Mode</h2>
+      <p class="challenge-subtitle">Linear Search</p>
+    </div>
+
+    <div class="challenge-context">
+      <div class="context-item">
+        <span class="label">Array</span>
+        <div class="array-visual">
+          @for (value of array; let i = $index; track i) {
+            <div
+              class="array-item"
+              [class.active]="i === currentIndex">
+              {{ value }}
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="context-item">
+        <span class="label">Target</span>
+        <span class="value">{{ target }}</span>
+      </div>
+    </div>
+
+    <div class="challenge-question">
+      {{ prompt }}
+    </div>
+
+    <div class="challenge-options">
+      @for (opt of options; track opt.value) {
+        <button
+          class="challenge-option-btn"
+          (click)="submit(opt.value)">
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+
+    @if (feedback) {
+      <div class="challenge-feedback">
+        {{ feedback }}
+      </div>
+    }
+
+    @if (explanation) {
+      <div class="challenge-explanation">
+        {{ explanation }}
+      </div>
+    }
+
+  } @else {
+
+    <!-- ===== FINISHED STATE ===== -->
+
+    <div class="challenge-finish">
+      <h2>Challenge Completed 🎉</h2>
+
+      <p>
+        @if (challengeResult === 'found') {
+          You successfully identified how Linear Search works.
+        } @else {
+          You followed the algorithm correctly till the end.
+        }
+      </p>
+
+      <div class="finish-actions">
+        <button (click)="restartChallenge()">Try Again</button>
+        <button (click)="goBackToLearning()">Back to Learning</button>
+      </div>
+    </div>
+
+  }
+
+</div>
