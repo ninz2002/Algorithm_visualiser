@@ -34,7 +34,7 @@
         <div class="overview-section">
           <div class="section-icon"><i class="fa-solid fa-arrow-up-arrow-down"></i></div>
           <h2>What is it?</h2>
-          <p>{{algorithmMeta?.short_description || "Bubble Sort works by repeatedly stepping through the list, comparing adjacent elements and swapping them if they're in the wrong order. The largest elements 'bubble up' to their correct positions."}}</p>
+          <p>Bubble Sort works by repeatedly stepping through the list, comparing adjacent elements and swapping them if they're in the wrong order. The largest elements 'bubble up' to their correct positions.</p>
         </div>
 
         <div class="overview-section">
@@ -109,15 +109,13 @@
       [class.dim]="!isLineActive(7) && currentStep"
       #line7><span class="line-number">7</span>    <span class="keyword">return</span> arr</span></code></pre>
 
-          @if (currentStep) {
-            <div class="live-explanation">
-              <div class="explanation-header">
-                <span class="explanation-icon"><i class="fa-solid fa-lightbulb"></i></span>
-                <span class="explanation-title">What's happening?</span>
-              </div>
-              <p class="explanation-text">{{ getLineExplanation(currentStep.line) }}</p>
+          <div class="live-explanation" *ngIf="currentStep">
+            <div class="explanation-header">
+              <span class="explanation-icon"><i class="fa-solid fa-lightbulb"></i></span>
+              <span class="explanation-title">What's happening?</span>
             </div>
-          }
+            <p class="explanation-text">{{ getLineExplanation(currentStep.line) }}</p>
+          </div>
 
           <div class="complexity-info">
             <div class="complexity-item">
@@ -155,190 +153,185 @@
             <h3>Live Visualization</h3>
           </div>
 
-          @if (steps.length > 0) {
-            <div class="input-controls-compact">
-              <span class="input-display">Array: {{ arrayInput }}</span>
-              <button class="edit-button" (click)="resetToEdit()"><i class="fa-duotone fa-solid fa-pen-to-square"></i> Edit</button>
-            </div>
-          }
+          <div class="input-controls-compact" *ngIf="steps.length > 0">
+            <span class="input-display">Array: {{ arrayInput }}</span>
+            <button class="edit-button" (click)="resetToEdit()"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+          </div>
         </div>
 
         <div class="viz-content">
 
-          @if (currentStep) {
-            <div class="animation-area">
+          <div class="animation-area" *ngIf="currentStep">
 
-              <div class="status-bar">
-                <div class="status-left">
-                  <div class="status-icon"
-                       [style.color]="getActionColor(currentStep.action)">
-                    {{ getActionIcon(currentStep.action) }}
-                  </div>
-
-                  <div class="status-info">
-                    <div class="status-message">
-                      {{ currentStep.message }}
-                    </div>
-
-                    @if (currentStep.action !== 'complete' && (currentStep.variables.i !== undefined || currentStep.variables.j !== undefined)) {
-                      <div class="status-detail">
-                        @if (currentStep.variables.i !== undefined) {
-                          Pass
-                          <span class="highlight">
-                            {{ currentStep.variables.i + 1 }}
-                          </span>
-                        }
-                        @if (currentStep.variables.j !== undefined) {
-                          · Position
-                          <span class="highlight">
-                            {{ currentStep.variables.j }}
-                          </span>
-                        }
-                      </div>
-                    }
-                  </div>
+            <div class="status-bar">
+              <div class="status-left">
+                <div class="status-icon"
+                     [style.color]="getActionColor(currentStep.action)">
+                  {{ getActionIcon(currentStep.action) }}
                 </div>
 
-                <div class="status-badge"
+                <div class="status-info">
+                  <div class="status-message">
+                    {{ currentStep.message }}
+                  </div>
+
+                  <div class="status-detail" *ngIf="currentStep.action !== 'complete' && (currentStep.variables.i !== undefined || currentStep.variables.j !== undefined)">
+                    <ng-container *ngIf="currentStep.variables.i !== undefined">
+                      Pass
+                      <span class="highlight">
+                        {{ currentStep.variables.i + 1 }}
+                      </span>
+                    </ng-container>
+                    <ng-container *ngIf="currentStep.variables.j !== undefined">
+                      · Comparing indices
+                      <span class="highlight">
+                        {{ currentStep.variables.j }}
+                      </span>
+                      and
+                      <span class="highlight">
+                        {{ currentStep.variables.j + 1 }}
+                      </span>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+
+              <div class="status-badge"
+                   [style.background]="getActionColor(currentStep.action)">
+                {{ getActionLabel(currentStep.action) }}
+              </div>
+            </div>
+
+            <!-- FULL ARRAY DISPLAY -->
+            <div class="array-display">
+  <div
+    class="array-cell-wrapper"
+    *ngFor="let item of visualArray; let idx = index; trackBy: trackByValue"
+  >
+    <div class="cell-index">{{ idx }}</div>
+
+    <div
+      class="array-cell"
+      [class.comparing]="isComparingIndex(idx)"
+      [class.swapping]="isSwappingIndex(idx)"
+      [class.swap-left]="isSwappingLeft(idx)"
+      [class.swap-right]="isSwappingRight(idx)"
+      [class.sorted]="isSorted(idx)"
+    >
+      <span class="cell-value">{{ item }}</span>
+
+      <div
+        class="cell-glow"
+        *ngIf="isComparingIndex(idx) || isSwappingIndex(idx)"
+      ></div>
+    </div>
+
+    <div
+      class="pointer"
+      *ngIf="isComparingIndex(idx) && currentStep.action !== 'complete'"
+    >
+      <div class="pointer-arrow">▼</div>
+    </div>
+  </div>
+</div>
+
+
+            <div class="progress-section">
+              <div class="progress-label">
+                <span>Step {{ currentStepIndex + 1 }} of {{ steps.length }}</span>
+                <span>{{ progressPercentage.toFixed(0) }}%</span>
+              </div>
+
+              <div class="progress-track">
+                <div class="progress-fill"
+                     [style.width.%]="progressPercentage"
                      [style.background]="getActionColor(currentStep.action)">
-                  {{ getActionLabel(currentStep.action) }}
                 </div>
               </div>
-
-              @if (currentStep.action === 'compare' && currentStep.variables.j !== undefined) {
-                <div class="comparison-display">
-                  <div class="compare-item current">
-                    <span class="compare-label">Index {{ currentStep.variables.j }}</span>
-                    <span class="compare-value">
-                      {{ currentStep.data[currentStep.variables.j] }}
-                    </span>
-                  </div>
-
-                  <div class="compare-operator">{{ currentStep.data[currentStep.variables.j] > currentStep.data[currentStep.variables.j + 1] ? '>' : '≤' }}</div>
-
-                  <div class="compare-item target">
-                    <span class="compare-label">Index {{ currentStep.variables.j + 1 }}</span>
-                    <span class="compare-value">{{ currentStep.data[currentStep.variables.j + 1] }}</span>
-                  </div>
-                </div>
-              }
-
-              <div class="array-display">
-                @for (item of currentStep.data; track $index; let idx = $index) {
-                  <div class="array-cell-wrapper">
-                    <div class="cell-index">{{ idx }}</div>
-
-                    <div class="array-cell"
-                         [class.active]="isComparingIndex(idx)"
-                         [class.swapping]="isSwappingIndex(idx)"
-                         [class.sorted]="isSorted(idx) || currentStep.action === 'complete'">
-                      <span class="cell-value">{{ item }}</span>
-
-                      @if (isComparingIndex(idx) && currentStep.action !== 'complete') {
-                        <div class="cell-glow"></div>
-                      }
-                    </div>
-
-                    @if (isComparingIndex(idx) && currentStep.action !== 'complete') {
-                      <div class="pointer">
-                        <div class="pointer-arrow">▼</div>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-
-              <div class="progress-section">
-                <div class="progress-label">
-                  <span>Step {{ currentStepIndex + 1 }} of {{ steps.length }}</span>
-                  <span>{{ progressPercentage.toFixed(0) }}%</span>
-                </div>
-
-                <div class="progress-track">
-                  <div class="progress-fill"
-                       [style.width.%]="progressPercentage"
-                       [style.background]="getActionColor(currentStep.action)">
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          }
-
-          @if (!currentStep) {
-            <div class="input-center-state">
-              <div class="input-card">
-                <h3>Configure Your Sort</h3>
-                <p class="input-subtitle">Enter an array to visualize the sorting process</p>
-
-                <div class="input-form">
-                  <div class="form-group">
-                    <label>Array (comma-separated)</label>
-                    <input type="text"
-                           [(ngModel)]="arrayInput"
-                           placeholder="64, 34, 25, 12, 22, 11, 90"
-                           class="input-field" />
-                  </div>
-
-                  <button class="run-button-large" (click)="runSort()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="5 3 19 12 5 21 5 3"/>
-                    </svg>
-                    Run Visualization
-                  </button>
-                </div>
-              </div>
-            </div>
-          }
-
-        </div>
-
-        @if (steps.length > 0) {
-          <div class="control-panel">
-
-            <div class="playback-controls">
-              <button class="ctrl-btn" (click)="handleReset()" title="Reset">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                  <path d="M21 3v5h-5"/>
-                </svg>
-              </button>
-
-              <button class="ctrl-btn"
-                      (click)="handlePrevious()"
-                      [disabled]="currentStepIndex === 0"
-                      title="Previous">
-                ◀
-              </button>
-
-              <button class="ctrl-btn play-btn"
-                      (click)="handlePlayPause()"
-                      title="Play/Pause">
-                {{ isPlaying ? '❚❚' : '▶' }}
-              </button>
-
-              <button class="ctrl-btn"
-                      (click)="handleNext()"
-                      [disabled]="currentStepIndex >= steps.length - 1"
-                      title="Next">
-                ▶
-              </button>
-            </div>
-
-            <div class="speed-control">
-              <span class="speed-label">Speed</span>
-              <input type="range"
-                     min="200"
-                     max="2000"
-                     step="100"
-                     [(ngModel)]="speed"
-                     (input)="onSpeedChange()"
-                     class="speed-slider" />
-              <span class="speed-value">{{ getSpeedLabel() }}</span>
             </div>
 
           </div>
-        }
+
+          <div class="input-center-state" *ngIf="!currentStep">
+            <div class="input-card">
+              <h3>Configure Your Sort</h3>
+              <p class="input-subtitle">Enter an array to visualize the sorting process</p>
+
+              <div class="input-form">
+                <div class="form-group">
+                  <label>Array (comma-separated)</label>
+                  <input type="text"
+                         [(ngModel)]="arrayInput"
+                         placeholder="64, 34, 25, 12, 22, 11, 90"
+                         class="input-field" />
+                </div>
+
+                <button class="run-button-large" (click)="runSort()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  Run Visualization
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="control-panel" *ngIf="steps.length > 0">
+
+          <div class="playback-controls">
+            <button class="ctrl-btn" (click)="handleReset()" title="Reset">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+              </svg>
+            </button>
+
+            <button class="ctrl-btn"
+                    (click)="handlePrevious()"
+                    [disabled]="currentStepIndex === 0"
+                    title="Previous">
+              ◀
+            </button>
+
+            <button class="ctrl-btn play-btn"
+                    (click)="handlePlayPause()"
+                    title="Play/Pause">
+              <ng-container *ngIf="isPlaying">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16"/>
+                  <rect x="14" y="4" width="4" height="16"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngIf="!isPlaying">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+              </ng-container>
+            </button>
+
+            <button class="ctrl-btn"
+                    (click)="handleNext()"
+                    [disabled]="currentStepIndex >= steps.length - 1"
+                    title="Next">
+              ▶
+            </button>
+          </div>
+
+          <div class="speed-control">
+            <span class="speed-label">Speed</span>
+            <input type="range"
+                   min="200"
+                   max="2000"
+                   step="100"
+                   [(ngModel)]="speed"
+                   (input)="onSpeedChange()"
+                   class="speed-slider" />
+            <span class="speed-value">{{ getSpeedLabel() }}</span>
+          </div>
+
+        </div>
 
       </div>
     </div>
@@ -358,7 +351,7 @@
         <!-- Time Complexity Card -->
         <div class="complexity-card time-card">
           <div class="card-header">
-            <div class="card-icon"><i class="fa-regular fa-stopwatch"></i></div>
+            <div class="card-icon"><i class="fa-solid fa-stopwatch"></i></div>
             <h2>Time Complexity</h2>
           </div>
           <div class="big-o">{{algorithmMeta?.time_complexity || 'O(n²)'}}</div>
@@ -385,7 +378,7 @@
         <!-- Space Complexity Card -->
         <div class="complexity-card space-card">
           <div class="card-header">
-            <div class="card-icon"><i class="fa-duotone fa-regular fa-floppy-disk"></i></div>
+            <div class="card-icon"><i class="fa-solid fa-floppy-disk"></i></div>
             <h2>Space Complexity</h2>
           </div>
           <div class="big-o">{{algorithmMeta?.space_complexity || 'O(1)'}}</div>

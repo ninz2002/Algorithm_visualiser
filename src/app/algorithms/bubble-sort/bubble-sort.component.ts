@@ -22,6 +22,10 @@ interface Step {
 })
 export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit {
 
+  trackByValue(index: number, value: number): number {
+  return value;
+}
+
   algorithmMeta: any = null;
 
   /* -------------------- DATA -------------------- */
@@ -33,8 +37,11 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
   steps: Step[] = [];
   currentStepIndex = 0;
 
+  // NEW: Visual array for delayed swap updates (so numbers animate with the swap)
+  visualArray: number[] = [...this.array];
+
   isPlaying = false;
-  speed = 1000;
+  speed = 1400;
   private intervalId: any = null;
 
   /* -------------------- SPLIT VIEW -------------------- */
@@ -104,18 +111,38 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
       })
       .subscribe({
         next: res => {
-          this.steps = res.steps;
+          console.log('RAW STEPS FROM BACKEND:', res.steps);
+
+          // FIX: Convert data to array if it's an object
+          this.steps = res.steps.map(step => {
+            let dataArray: number[] = [];
+
+            // CASE 1: backend sends data as { array: [...] }
+            if (step.data && Array.isArray((step.data as any).array)) {
+              dataArray = [...(step.data as any).array];
+            }
+            // CASE 2: backend already sends array
+            else if (Array.isArray(step.data)) {
+              dataArray = [...step.data];
+            }
+
+            return { ...step, data: dataArray };
+          });
+
+          console.log(this.steps.map(s => s.data.length));
+
           this.currentStepIndex = 0;
+          this.visualArray = [...this.steps[0]?.data || this.array]; // Initialize visual array
           this.isPlaying = false;
           this.clearPlayInterval();
-          
+
           // Auto-start playback after a brief delay
           setTimeout(() => {
             this.handlePlayPause();
           }, 500);
         },
         error: err => {
-          console.error(err);
+          console.error('Backend error:', err);
           alert('Flask backend not reachable on port 5000');
         },
       });
@@ -131,6 +158,7 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
   resetToEdit(): void {
     this.steps = [];
     this.currentStepIndex = 0;
+    this.visualArray = [...this.array];
     this.isPlaying = false;
     this.clearPlayInterval();
   }
@@ -143,6 +171,7 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
     // If at end, restart from beginning
     if (this.currentStepIndex >= this.steps.length - 1 && !this.isPlaying) {
       this.currentStepIndex = 0;
+      this.visualArray = [...this.steps[0]?.data || this.array];
     }
 
     this.isPlaying = !this.isPlaying;
@@ -159,13 +188,67 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
 
     this.intervalId = setInterval(() => {
       if (this.currentStepIndex < this.steps.length - 1) {
-        this.currentStepIndex++;
+        this.goToNextStep();
       } else {
         this.isPlaying = false;
         this.clearPlayInterval();
       }
     }, this.speed);
   }
+
+  // NEW: Method to handle step transitions with swap delay
+  private prevPositions = new Map<number, DOMRect>();
+  private capturePositions(): void {
+  this.prevPositions.clear();
+  const cells = document.querySelectorAll('.array-cell');
+  cells.forEach((cell, index) => {
+    this.prevPositions.set(index, cell.getBoundingClientRect());
+  });
+}
+
+private animateFlip(): void {
+  const cells = document.querySelectorAll('.array-cell');
+
+  cells.forEach((cell, index) => {
+    const prev = this.prevPositions.get(index);
+    if (!prev) return;
+
+    const current = cell.getBoundingClientRect();
+    const dx = prev.left - current.left;
+
+    if (dx !== 0) {
+      const el = cell as HTMLElement;
+      el.style.transition = 'none';
+      el.style.transform = `translate(${dx}px, -8px) scale(1.05)`;
+
+
+      requestAnimationFrame(() => {
+        el.style.transition = 'transform 300ms ease';
+        el.style.transform = '';
+      });
+    }
+  });
+}
+
+private goToNextStep(): void {
+  const nextIndex = this.currentStepIndex + 1;
+  const nextStep = this.steps[nextIndex];
+  if (!nextStep) return;
+
+  // 1️⃣ Capture current positions
+  this.capturePositions();
+
+  // 2️⃣ Advance step index (classes update)
+  this.currentStepIndex = nextIndex;
+
+  // 3️⃣ Update visual array (DOM reorders)
+  this.visualArray = [...nextStep.data];
+
+  // 4️⃣ Animate movement
+  requestAnimationFrame(() => {
+    this.animateFlip();
+  });
+}
 
   clearPlayInterval(): void {
     if (this.intervalId) {
@@ -178,21 +261,23 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
     this.isPlaying = false;
     this.clearPlayInterval();
     this.currentStepIndex = 0;
+    this.visualArray = [...this.steps[0]?.data || this.array];
   }
 
   handlePrevious(): void {
     this.isPlaying = false;
     this.clearPlayInterval();
-    this.currentStepIndex = Math.max(0, this.currentStepIndex - 1);
+    if (this.currentStepIndex > 0) {
+      this.currentStepIndex--;
+    }
   }
 
   handleNext(): void {
     this.isPlaying = false;
     this.clearPlayInterval();
-    this.currentStepIndex = Math.min(
-      this.steps.length - 1,
-      this.currentStepIndex + 1
-    );
+    if (this.currentStepIndex < this.steps.length - 1) {
+      this.goToNextStep(); // Use the new method for consistent behavior
+    }
   }
 
   onSpeedChange(): void {
@@ -221,9 +306,9 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
       case 4:
         return `Inner loop comparing adjacent elements. We check up to index ${(step.variables?.n ?? this.array.length) - (step.variables?.i ?? 0) - 1} since the last ${step.variables?.i ?? 0} elements are already sorted.`;
       case 5:
-        return `Comparing elements at index ${step.variables?.j ?? 0} (${step.data[step.variables?.j ?? 0]}) and ${(step.variables?.j ?? 0) + 1} (${step.data[(step.variables?.j ?? 0) + 1]}). Checking if they need to be swapped.`;
+        return `Comparing elements at index ${step.variables?.j ?? 0} (${this.visualArray[step.variables?.j ?? 0]}) and ${(step.variables?.j ?? 0) + 1} (${this.visualArray[(step.variables?.j ?? 0) + 1]}). Checking if they need to be swapped.`;
       case 6:
-        return `Swapping! Element ${step.data[step.variables?.j ?? 0]} at index ${step.variables?.j ?? 0} is greater than ${step.data[(step.variables?.j ?? 0) + 1]} at index ${(step.variables?.j ?? 0) + 1}, so we swap them.`;
+        return `Swapping! Element ${this.visualArray[step.variables?.j ?? 0]} at index ${step.variables?.j ?? 0} is greater than ${this.visualArray[(step.variables?.j ?? 0) + 1]} at index ${(step.variables?.j ?? 0) + 1}, so we swap them.`;
       case 7:
         return 'Bubble sort complete! The array is now fully sorted and we return the result.';
       default:
@@ -261,7 +346,7 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
       const elementTop = element.offsetTop;
       const containerHeight = container.clientHeight;
       const elementHeight = element.clientHeight;
-      
+
       container.scrollTo({
         top: elementTop - (containerHeight / 2) + (elementHeight / 2),
         behavior: 'smooth'
@@ -297,7 +382,7 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
 
     window.addEventListener('touchmove', this.onTouchMove, { passive: false });
     window.addEventListener('touchend', this.onTouchEnd);
-  }
+  };
 
   private onTouchMove = (event: TouchEvent): void => {
     if (!this.isResizing) return;
@@ -361,6 +446,20 @@ export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit 
     const j = this.currentStep.variables?.j;
     if (j === undefined) return false;
     return index === j || index === j + 1;
+  }
+
+  isSwappingLeft(index: number): boolean {
+    if (!this.currentStep || this.currentStep.action !== 'swap') return false;
+    const j = this.currentStep.variables?.j;
+    if (j === undefined) return false;
+    return index === j; // Left element (goes UP and RIGHT)
+  }
+
+  isSwappingRight(index: number): boolean {
+    if (!this.currentStep || this.currentStep.action !== 'swap') return false;
+    const j = this.currentStep.variables?.j;
+    if (j === undefined) return false;
+    return index === j + 1; // Right element (goes DOWN and LEFT)
   }
 
   isSorted(index: number): boolean {

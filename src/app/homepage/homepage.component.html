@@ -13,26 +13,49 @@
     </p>
   </section>
 
-  <!-- GRID -->
-  <div class="algo-grid">
-    <div
-      class="algo-tile"
-      *ngFor="let algo of filteredAlgorithms"
-      (click)="goToAlgorithm(algo.route)"
-    >
-
-      <div class="tile-visual">
-        <div class="array-preview">
-          <span>15</span>
-          <span>7</span>
-          <span class="active">23</span>
-          <span>9</span>
-        </div>
+  <!-- CATEGORIES -->
+  <div class="categories-container">
+    <div class="category-section" *ngFor="let category of categorizedAlgorithms">
+      
+      <!-- Category Title -->
+      <div class="category-header">
+        <div class="category-line"></div>
+        <h2 class="category-title">{{ category.name }}</h2>
+        <div class="category-line"></div>
       </div>
 
-      <div class="tile-info">
-        <h3>{{ algo.title }}</h3>
-        <span class="tagline">{{ algo.tagline }}</span>
+      <!-- Algorithm Grid -->
+      <div class="algo-grid">
+        <div
+          class="algo-tile"
+          *ngFor="let algo of category.algorithms"
+          (click)="goToAlgorithm(algo.route)"
+        >
+
+          <div class="tile-visual">
+            <!-- Linear Search Preview -->
+            <div class="array-preview" *ngIf="algo.route === '/linear-search'">
+              <span>15</span>
+              <span>7</span>
+              <span class="active">23</span>
+              <span>9</span>
+            </div>
+
+            <!-- Bubble Sort Preview -->
+            <div class="array-preview bubble-sort-preview" *ngIf="algo.route === '/bubble-sort'">
+              <span class="swapping-1">34</span>
+              <span class="swapping-2">12</span>
+              <span>25</span>
+              <span>64</span>
+            </div>
+          </div>
+
+          <div class="tile-info">
+            <h3>{{ algo.title }}</h3>
+            <span class="tagline">{{ algo.tagline }}</span>
+          </div>
+
+        </div>
       </div>
 
     </div>
