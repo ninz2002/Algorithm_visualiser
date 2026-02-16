@@ -1,84 +1,152 @@
 <div class="challenge-page">
 
-  @if (!challengeFinished) {
-
-    <!-- ===== PLAYING STATE ===== -->
-
-    <div class="challenge-header">
-      <div class="challenge-badge">
-        <i class="fa-solid fa-trophy"></i>
-      </div>
-      <h2 class="challenge-title">Challenge Mode</h2>
-      <p class="challenge-subtitle">Linear Search</p>
+  <!-- ============================================
+       HEADER WITH MODE SELECTOR
+       ============================================ -->
+  
+  <div class="challenge-header">
+    <div class="challenge-badge">
+      <i class="fa-solid fa-trophy"></i>
     </div>
+    <h2 class="challenge-title">Challenge Mode</h2>
+    <p class="challenge-subtitle">{{ challengeSet?.displayName || 'Loading...' }}</p>
+  </div>
 
-    <div class="challenge-context">
-      <div class="context-item">
-        <span class="label">Array</span>
-        <div class="array-visual">
-          @for (value of array; let i = $index; track i) {
-            <div
-              class="array-item"
-              [class.active]="i === currentIndex">
-              {{ value }}
-            </div>
-          }
-        </div>
-      </div>
+  <!-- ============================================
+       MODE SELECTOR TABS
+       ============================================ -->
 
-      <div class="context-item">
-        <span class="label">Target</span>
-        <span class="value">{{ target }}</span>
-      </div>
+  <div class="mode-selector" *ngIf = "challengeSet">
+    <button
+      *ngFor="let mode of modes"
+      class="mode-tab"
+      [class.active]="currentMode === mode"
+      [class.completed]="isModeCompleted(mode)"
+      [class.locked]="!isModeUnlocked(mode)"
+      [disabled]="!isModeUnlocked(mode)"
+      (click)="switchMode(mode)"
+      [title]="!isModeUnlocked(mode) ? getModeLockReason(mode) : ''">
+      
+      <span class="mode-icon">{{ getModeIcon(mode) }}</span>
+      <span class="mode-name">{{ getModeTitle(mode) }}</span>
+      
+      <span class="mode-status" *ngIf="isModeCompleted(mode)">
+        <i class="fa-solid fa-check"></i>
+      </span>
+      <span class="mode-status" *ngIf="!isModeUnlocked(mode)">
+        <i class="fa-solid fa-lock"></i>
+      </span>
+    </button>
+  </div>
+
+  <!-- ============================================
+       PROGRESS BAR
+       ============================================ -->
+
+  <div class="progress-container" *ngIf="currentModeData && totalQuestions !== 0 && !showModeCompletion">
+    <div class="progress-label">
+      <span>Question {{ currentQuestionIndex + 1 }} of {{ totalQuestions }}</span>
+      <span>{{ progressPercentage.toFixed(0) }}%</span>
     </div>
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+    </div>
+  </div>
 
+  <!-- ============================================
+       QUESTION CARD
+       ============================================ -->
+
+  <div class="challenge-card" *ngIf="currentQuestion && totalQuestions !== 0 && !showModeCompletion">
+    
     <div class="challenge-question">
-      {{ prompt }}
+      {{ currentQuestion.prompt }}
     </div>
 
     <div class="challenge-options">
-      @for (opt of options; track opt.value) {
-        <button
-          class="challenge-option-btn"
-          (click)="submit(opt.value)">
-          {{ opt.label }}
-        </button>
-      }
+      <button
+        *ngFor="let option of currentQuestion.options"
+        class="challenge-option-btn"
+        [class.selected]="selectedAnswer === option.value"
+        [class.correct]="isCorrect && selectedAnswer === option.value"
+        [class.incorrect]="!isCorrect && selectedAnswer === option.value"
+        [disabled]="selectedAnswer !== null || isQuestionLocked"
+        (click)="submitAnswer(option.value)">
+        
+        <span class="option-icon">
+          <i class="fa-solid fa-arrow-right"></i>
+        </span>
+        <span class="option-text">{{ option.label }}</span>
+      </button>
     </div>
 
-    @if (feedback) {
-      <div class="challenge-feedback">
+    <!-- Feedback -->
+    <div class="challenge-feedback" *ngIf="feedback">
+      <div class="feedback-content" [class.correct]="isCorrect" [class.incorrect]="!isCorrect">
         {{ feedback }}
       </div>
-    }
-
-    @if (explanation) {
-      <div class="challenge-explanation">
-        {{ explanation }}
-      </div>
-    }
-
-  } @else {
-
-    <!-- ===== FINISHED STATE ===== -->
-
-    <div class="challenge-finish">
-      <h2>Challenge Completed 🎉</h2>
-
-      <p>
-        @if (challengeResult === 'found') {
-          You successfully identified how Linear Search works.
-        } @else {
-          You followed the algorithm correctly till the end.
-        }
-      </p>
-
-      <div class="finish-actions">
-        <button (click)="restartChallenge()">Try Again</button>
-        <button (click)="goBackToLearning()">Back to Learning</button>
-      </div>
     </div>
 
-  }
+    <div class="challenge-hint" *ngIf="showHint && currentQuestion.hint">
+  💡 Hint: {{ currentQuestion.hint }}
+    </div>
+
+    <!-- Explanation -->
+    <div class="challenge-explanation" *ngIf="explanation">
+      <p>{{ explanation }}</p>
+    </div>
+
+    <button
+      class="action-btn primary"
+      *ngIf="canProceedAfterFailure"
+      (click)="nextQuestion()">
+      Continue
+    </button>
+
+
+  </div>
+
+  <!-- ============================================
+       MODE COMPLETION
+       ============================================ -->
+
+  <div class="mode-completion" *ngIf="showModeCompletion">
+    <div class="completion-icon">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    
+    <h2 class="completion-title">
+      {{ getModeTitle(currentMode) }} Completed! 🎉
+    </h2>
+    
+    <p class="completion-message">
+      <ng-container *ngIf="currentMode === 'quiz'">
+        You've mastered the concepts! Ready to trace the algorithm step-by-step?
+      </ng-container>
+      <ng-container *ngIf="currentMode === 'trace'">
+        Excellent execution tracing! Now test your predictive skills.
+      </ng-container>
+      <ng-container *ngIf="currentMode === 'predict'">
+        Incredible! You've completed all challenges for this algorithm.
+      </ng-container>
+    </p>
+
+    <div class="completion-actions">
+      <button 
+        class="action-btn primary"
+        *ngIf="currentMode !== 'predict'"
+        (click)="continueToNextMode()">
+        Continue to {{ currentMode === 'quiz' ? 'Trace' : 'Predict' }}
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+      <button 
+        class="action-btn secondary"
+        (click)="goBackToLearning()">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Learning
+      </button>
+    </div>
+  </div>
 
 </div>

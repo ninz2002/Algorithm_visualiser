@@ -14,7 +14,8 @@ import { SearchService } from '../services/search.service';
 export class NavbarComponent {
 
   searchQuery = '';
-  currentRoute: 'home' | 'linear' | 'challenge' = 'home';
+  currentRoute: 'home' | 'learning' | 'challenge' = 'home';
+  currentAlgorithm: string | null = null;
 
   constructor(
     private searchService: SearchService,
@@ -28,25 +29,34 @@ export class NavbarComponent {
   }
 
   private detectRoute(url: string) {
-    if (url === '/') {
-      this.currentRoute = 'home';
-    } else if (url.startsWith('/linear-search')) {
-      this.currentRoute = 'linear';
-    } else if (url.startsWith('/challenge')) {
-      this.currentRoute = 'challenge';
-    }
+  if (url === '/') {
+    this.currentRoute = 'home';
+    this.currentAlgorithm = null;
+    return;
   }
+
+  // Challenge route
+  if (url.startsWith('/challenge/')) {
+    this.currentRoute = 'challenge';
+    this.currentAlgorithm = url.split('/')[2];
+    return;
+  }
+
+  // Learning route (any algorithm)
+  this.currentRoute = 'learning';
+  this.currentAlgorithm = url.split('/')[1];
+}
+
 
   setMode(mode: 'learning' | 'challenge') {
-    // 🚫 Disable toggle on home
-    if (this.currentRoute === 'home') return;
+  if (this.currentRoute === 'home' || !this.currentAlgorithm) return;
 
-    if (mode === 'learning') {
-      this.router.navigate(['/linear-search']);
-    } else {
-      this.router.navigate(['/challenge']);
-    }
+  if (mode === 'learning') {
+    this.router.navigate([`/${this.currentAlgorithm}`]);
+  } else {
+    this.router.navigate([`/challenge/${this.currentAlgorithm}`]);
   }
+}
 
   onSearchChange(): void {
     this.searchService.setSearchQuery(this.searchQuery);

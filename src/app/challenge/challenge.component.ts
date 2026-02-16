@@ -1,128 +1,293 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { LinearSearchEngine, AlgorithmEvent } from './engines/linear-search.engine';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import {
+  ChallengeSet,
+  ChallengeMode,
+  ModeStatus,
+  ChallengeModeData,
+  ChallengeQuestion
+} from './challenge-definitions/challenge.types';
+
+import { LinearSearchChallenge } from './challenge-definitions/linear-search.challenge';
+import { BubbleSortChallenge } from './challenge-definitions/bubble-sort.challenge';
 
 @Component({
   selector: 'app-challenge',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './challenge.component.html',
   styleUrls: ['./challenge.component.css'],
 })
 export class ChallengeComponent implements OnInit {
 
-  // -------------------------------
-  // Engine
-  // -------------------------------
-  engine!: LinearSearchEngine;
+  // ============================================
+  // STATE
+  // ============================================
 
-  // -------------------------------
-  // Challenge state
-  // -------------------------------
-  array = [15, 7, 23, 9, 42];
-  target = 42;
+  algorithmId = '';
+  challengeSet: ChallengeSet | null = null;
 
-  currentIndex = 0;
-  challengeFinished = false;
-  challengeResult: 'found' | 'not_found' | null = null;
+  readonly modes: ChallengeMode[] = ['quiz', 'trace', 'predict'];
 
+  currentMode: ChallengeMode = 'quiz';
+  currentQuestionIndex = 0;
 
-  prompt = '';
-  options: { label: string; value: string }[] = [];
+  modeProgress: Record<ChallengeMode, ModeStatus> = {
+    quiz: 'not-started',
+    trace: 'locked',
+    predict: 'locked',
+  };
+
+  selectedAnswer: string | null = null;
   feedback = '';
   explanation = '';
+  isCorrect = false;
 
-  private expectedAnswer: string | null = null;
+  showModeCompletion = false;
 
-  // -------------------------------
-  // Init
-  // -------------------------------
+  attemptCount = 0;
+  showHint = false;
+  isQuestionLocked = false;
+
+  canProceedAfterFailure = false;
+
+  // ============================================
+// UI HELPERS (REQUIRED BY TEMPLATE)
+// ============================================
+
+isModeUnlocked(mode: ChallengeMode): boolean {
+  return this.modeProgress[mode] !== 'locked';
+}
+
+isModeCompleted(mode: ChallengeMode): boolean {
+  return this.modeProgress[mode] === 'completed';
+}
+
+getModeIcon(mode: ChallengeMode): string {
+  const icons: Record<ChallengeMode, string> = {
+    quiz: '📝',
+    trace: '🔍',
+    predict: '🎯',
+  };
+  return icons[mode];
+}
+
+getModeTitle(mode: ChallengeMode): string {
+  const titles: Record<ChallengeMode, string> = {
+    quiz: 'Quiz',
+    trace: 'Trace',
+    predict: 'Predict',
+  };
+  return titles[mode];
+}
+
+getModeLockReason(mode: ChallengeMode): string {
+  if (mode === 'trace') {
+    return 'Complete Quiz first to unlock Trace';
+  }
+  if (mode === 'predict') {
+    return 'Complete Trace first to unlock Predict';
+  }
+  return '';
+}
+
+  // ============================================
+  // GETTERS
+  // ============================================
+
+  get currentModeData(): ChallengeModeData | null {
+    return this.challengeSet ? this.challengeSet[this.currentMode] : null;
+  }
+
+  get currentQuestion(): ChallengeQuestion | null {
+    return this.currentModeData
+      ? this.currentModeData.questions[this.currentQuestionIndex]
+      : null;
+  }
+
+  get totalQuestions(): number {
+    return this.currentModeData?.questions.length ?? 0;
+  }
+
+  get progressPercentage(): number {
+    if (!this.totalQuestions) return 0;
+    return ((this.currentQuestionIndex + 1) / this.totalQuestions) * 100;
+  }
+
+  // ============================================
+  // LIFECYCLE
+  // ============================================
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
   ngOnInit(): void {
-    this.startChallenge();
-  }
+  this.route.params.subscribe(params => {
+    this.algorithmId = params['algorithm'];
+    this.loadChallengeSet();
 
-  startChallenge(): void {
-    this.challengeFinished = false;
-    this.feedback = '';
-    this.explanation = '';
-    this.currentIndex = 0;
+    // Reset state safely
+    this.currentMode = 'quiz';
+    this.currentQuestionIndex = 0;
+    this.resetQuestionState();
+    this.showModeCompletion = false;
+  });
+}
 
-    this.engine = new LinearSearchEngine(this.array, this.target);
 
-    this.engine.onEvent((event: AlgorithmEvent) => {
-      this.handleEvent(event);
-    });
+  // ============================================
+  // DATA LOADING
+  // ============================================
 
-    this.engine.step();
-  }
+  loadChallengeSet(): void {
+    switch (this.algorithmId) {
+      case 'linear-search':
+        this.challengeSet = LinearSearchChallenge;
+        break;
 
-  // -------------------------------
-  // Event handling
-  // -------------------------------
-  handleEvent(event: AlgorithmEvent): void {
+      case 'bubble-sort':
+        this.challengeSet = BubbleSortChallenge;
+        break;
 
-    if (event.type === 'compare') {
-      this.pauseAndAsk(event);
+      default:
+        console.error('No challenge set found for:', this.algorithmId);
+        this.challengeSet = null;
+        return;
     }
 
-    if (event.type === 'found' || event.type === 'not_found') {
-      this.challengeFinished = true;
-      this.challengeResult = event.type;
-}
+    // Reset state
+    this.currentMode = 'quiz';
+    this.currentQuestionIndex = 0;
+
+    this.modeProgress = {
+      quiz: 'not-started',
+      trace: 'locked',
+      predict: 'locked',
+    };
   }
 
-  // -------------------------------
-  // Question logic
-  // -------------------------------
- pauseAndAsk(event: AlgorithmEvent): void {
-  this.currentIndex = event.payload.index; // ✅ FIX
+  // ============================================
+  // MODE SWITCHING
+  // ============================================
 
-  const { value, target } = event.payload;
+  switchMode(mode: ChallengeMode): void {
+    if (this.modeProgress[mode] === 'locked') return;
 
-  this.prompt = `At index ${event.payload.index}, what happens next?`;
+    this.currentMode = mode;
+    this.currentQuestionIndex = 0;
+    this.resetQuestionState();
 
-  this.options = [
-    { label: 'Move to next index', value: 'move' },
-    { label: 'Element found → stop', value: 'found' },
-  ];
+    if (this.modeProgress[mode] === 'not-started') {
+      this.modeProgress[mode] = 'in-progress';
+    }
+  }
 
-  this.expectedAnswer = value === target ? 'found' : 'move';
-}
+  // ============================================
+  // ANSWERS
+  // ============================================
 
+  submitAnswer(answer: string): void {
+  if (!this.currentQuestion || this.isQuestionLocked) return;
 
-  submit(answer: string): void {
-    const correct = answer === this.expectedAnswer;
+  this.attemptCount++;
+  this.selectedAnswer = answer;
+  this.isCorrect = answer === this.currentQuestion.correctAnswer;
 
-    if (!correct) {
-      this.feedback = 'Don’t worry — you’re learning. Try again 💪';
+  if (!this.isCorrect) {
+    const max = this.currentQuestion.maxAttempts ?? 3;
+
+    // Show hint after 2 failed attempts
+    if (this.attemptCount >= 2 && this.currentQuestion.hint) {
+      this.showHint = true;
+    }
+
+    // Lock question if max attempts exceeded
+    if (this.attemptCount >= max) {
+      this.isQuestionLocked = true;
+      this.canProceedAfterFailure = true;
+      this.feedback = '❌ Incorrect. Maximum attempts reached. Please review the explanation.';
+      this.explanation = this.currentQuestion.explanation;
       return;
     }
 
-    this.feedback = 'Correct ✅';
-
-    this.explanation =
-      this.expectedAnswer === 'move'
-        ? 'The current element does not match the target, so the search continues.'
-        : 'The current element matches the target, so the search stops.';
-
+    this.feedback = '❌ Incorrect. Try again.';
     setTimeout(() => {
+      this.selectedAnswer = null;
       this.feedback = '';
-      this.explanation = '';
-      this.engine.step();
-    }, 2500);
+    }, 1200);
 
-    
+    return;
   }
-  restartChallenge(): void {
-  this.challengeResult = null;
-  this.challengeFinished = false;
-  this.startChallenge();
+
+  // Correct answer
+  this.feedback = '✅ Correct!';
+  this.explanation = this.currentQuestion.explanation;
+
+  setTimeout(() => this.nextQuestion(), 2500);
 }
 
-goBackToLearning(): void {
-  // for now, just reload learning mode safely
-  window.history.back();
+
+  nextQuestion(): void {
+    this.currentQuestionIndex++;
+
+    if (this.currentQuestionIndex >= this.totalQuestions) {
+      this.completeMode();
+      return;
+    }
+
+    this.resetQuestionState();
+  }
+
+  resetQuestionState(): void {
+  this.selectedAnswer = null;
+  this.feedback = '';
+  this.explanation = '';
+  this.isCorrect = false;
+
+  this.attemptCount = 0;
+  this.showHint = false;
+  this.isQuestionLocked = false;
+
+  this.canProceedAfterFailure = false;
 }
 
+
+  // ============================================
+  // MODE COMPLETION
+  // ============================================
+
+  completeMode(): void {
+    this.modeProgress[this.currentMode] = 'completed';
+    this.showModeCompletion = true;
+
+    if (this.currentMode === 'quiz') {
+      this.modeProgress.trace = 'not-started';
+    }
+
+    if (this.currentMode === 'trace') {
+      this.modeProgress.predict = 'not-started';
+    }
+  }
+
+  continueToNextMode(): void {
+    this.showModeCompletion = false;
+
+    if (this.currentMode === 'quiz') {
+      this.switchMode('trace');
+    } else if (this.currentMode === 'trace') {
+      this.switchMode('predict');
+    }
+  }
+
+  // ============================================
+  // NAVIGATION
+  // ============================================
+
+  goBackToLearning(): void {
+    this.router.navigate([`/${this.algorithmId}`]);
+  }
 }

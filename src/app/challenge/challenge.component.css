@@ -1,184 +1,297 @@
 .challenge-page {
-  min-height: calc(100vh - 80px);
-  padding: 64px 32px;
-
-  background:
-    radial-gradient(
-      circle at 50% 20%,
-      rgba(139, 92, 246, 0.12),
-      rgba(10, 10, 15, 0.95) 55%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(10, 10, 15, 0.98),
-      rgba(10, 10, 15, 1)
-    );
-
+  min-height: 100vh;
+  padding: 0;
+  background: #0a0a0f;
   color: #e5e7eb;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  position: relative;
+  overflow: hidden;
 }
+
+/* Aggressive gradient background */
+.challenge-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15), transparent 60%),
+    radial-gradient(circle at 0% 100%, rgba(236, 72, 153, 0.12), transparent 60%);
+  animation: pulseBackground 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseBackground {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ============================================
+   COMPACT HEADER
+   ============================================ */
 
 .challenge-header {
+  padding: 20px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 40px;
-}
-
-.challenge-title {
-  font-size: 28px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin: 12px 0 4px;
-}
-
-.challenge-subtitle {
-  font-size: 14px;
-  color: #94a3b8;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.challenge-context {
-  width: 100%;
-  max-width: 900px;
-  background: rgba(15, 15, 25, 0.6);
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  border-radius: 12px;
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 48px;
-}
-
-.context-item {
-  display: flex;
-  gap: 12px;
-}
-
-.context-item .label {
-  color: #94a3b8;
-  font-size: 13px;
-  text-transform: uppercase;
-}
-
-.context-item .value {
-  font-size: 15px;
-  font-weight: 600;
-  color: #e5e7eb;
+  background: rgba(10, 10, 15, 0.8);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 10;
+  gap: 8px;
 }
 
 .challenge-badge {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 24px;
+  width: 40px;
+  height: 40px;
   background: linear-gradient(135deg, #8b5cf6, #ec4899);
-  border-radius: 16px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 18px;
   color: #ffffff;
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
-  animation: badgePulse 2s ease infinite;
-  position: relative;
-  z-index: 1;
 }
 
-@keyframes badgePulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 12px 32px rgba(139, 92, 246, 0.6);
-  }
+.challenge-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
 }
 
-/* ================================================
-   TITLE & PROMPT
-   ================================================ */
-
-
-
-.challenge-prompt {
-  font-size: 20px;
-  color: #e2e8f0;
-  margin: 0 0 32px 0;
-  line-height: 1.5;
-  font-weight: 500;
-  position: relative;
-  z-index: 1;
+.challenge-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* ================================================
-   OPTIONS
-   ================================================ */
+/* ============================================
+   MODE SELECTOR (stages not tabs)
+   ============================================ */
 
-.challenge-question {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 32px;
-  text-align: center;
-}
-
-.challenge-options {
+.mode-selector {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  max-width: 520px;
+  gap: 8px;
+  padding: 16px 32px;
+  background: rgba(15, 15, 25, 0.9);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  position: relative;
+  z-index: 9;
 }
 
-
-.challenge-option-btn {
-  padding: 18px 24px;
-  background: rgba(15, 15, 25, 0.8);
-  border: 2px solid rgba(139, 92, 246, 0.25);
-  border-radius: 14px;
-  color: #e2e8f0;
-  font-size: 15px;
-  font-weight: 600;
+.mode-tab {
+  flex: 1;
+  padding: 12px 20px;
+  background: rgba(15, 15, 25, 0.6);
+  border: 2px solid rgba(139, 92, 246, 0.15);
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 12px;
-  text-align: left;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mode-tab:hover:not(:disabled):not(.active) {
+  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.mode-tab.active {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+  transform: scale(1.05);
+}
+
+.mode-tab.completed:not(.active) {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+
+.mode-tab.locked {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: scale(0.95);
+}
+
+.mode-icon {
+  font-size: 16px;
+}
+
+.mode-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mode-status {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+/* ============================================
+   PROGRESS BAR (subtle, top)
+   ============================================ */
+
+.progress-container {
+  padding: 16px 32px;
+  background: rgba(10, 10, 15, 0.6);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-family: 'Fira Code', monospace;
+}
+
+.progress-track {
+  height: 4px;
+  background: rgba(15, 15, 25, 0.8);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 40px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-40px); }
+  100% { transform: translateX(40px); }
+}
+
+/* ============================================
+   CHALLENGE CARD (the hero section)
+   ============================================ */
+
+.challenge-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 32px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* THE QUESTION - massive, centered */
+.challenge-question {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.4;
+  margin: 0 0 60px 0;
+  text-align: center;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  letter-spacing: -0.5px;
+  animation: questionEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes questionEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Options - high contrast, risky feeling */
+.challenge-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.challenge-option-btn {
+  padding: 28px 32px;
+  background: rgba(15, 15, 25, 0.8);
+  border: 3px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  color: #e2e8f0;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
   font-family: 'Space Grotesk', -apple-system, sans-serif;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
 .challenge-option-btn::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.2), transparent);
-  transition: left 0.5s;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1));
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.challenge-option-btn:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.5);
-  transform: translateX(8px);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+.challenge-option-btn:hover:not(:disabled) {
+  border-color: rgba(139, 92, 246, 0.6);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4);
 }
 
-.challenge-option-btn:hover::before {
-  left: 100%;
+.challenge-option-btn:hover:not(:disabled)::before {
+  opacity: 1;
 }
 
-.challenge-option-btn:active {
-  transform: translateX(8px) scale(0.98);
+.challenge-option-btn:active:not(:disabled) {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.challenge-option-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .option-icon {
@@ -188,212 +301,280 @@
   transition: transform 0.3s;
 }
 
-.challenge-option-btn:hover .option-icon {
+.challenge-option-btn:hover:not(:disabled) .option-icon {
   transform: translateX(4px);
 }
 
 .option-text {
   flex: 1;
   color: #ffffff;
-}
-
-/* ================================================
-   FEEDBACK
-   ================================================ */
-
-.challenge-feedback {
-  margin-top: 28px;
   text-align: center;
 }
 
-.feedback-content {
-  padding: 18px 28px;
-  border-radius: 14px;
-
-  font-size: 17px;        /* ⬆ slightly bigger */
-  font-weight: 600;
-  line-height: 1.6;
-
-  font-family: 'Inter', 'Space Grotesk', -apple-system, sans-serif;
-  letter-spacing: 0.2px;
-
-  max-width: 520px;
-  margin: 0 auto;
+/* Correct answer - explosive feedback */
+.challenge-option-btn.correct {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.2);
+  animation: correctPulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 60px rgba(16, 185, 129, 0.6);
 }
 
-
-@keyframes feedbackSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes feedbackBounce {
+@keyframes correctPulse {
   0% {
-    transform: scale(0.3);
-    opacity: 0;
+    transform: scale(1);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.1);
   }
   100% {
-    transform: scale(1);
-    opacity: 1;
+    transform: scale(1.05);
   }
 }
 
-/* Correct answer */
-.feedback-content:contains('✅'),
-.feedback-content:contains('Correct') {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2));
-  border: 2px solid rgba(16, 185, 129, 0.5);
-  color: #10b981;
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+/* Wrong answer - gentle shake, warm orange */
+.challenge-option-btn.incorrect {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  animation: incorrectShake 0.3s ease-in-out;
 }
 
-/* Wrong answer */
-.feedback-content:contains('Don\'t worry'),
-.feedback-content:contains('Try again') {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.2));
-  border: 2px solid rgba(245, 158, 11, 0.5);
-  color: #f59e0b;
-  box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+@keyframes incorrectShake {
+  0%, 100% { transform: translateX(0); }
+  33% { transform: translateX(-5px); }
+  66% { transform: translateX(5px); }
 }
 
-/* ================================================
-   EXPLANATION
-   ================================================ */
+/* ============================================
+   FEEDBACK (direct, not polite)
+   ============================================ */
 
-.challenge-explanation {
-  position: relative;
-  z-index: 1;
-  padding: 16px 20px;
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 12px;
-  animation: explanationFadeIn 0.3s ease 0.2s both;
+.challenge-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  animation: feedbackEnter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
 }
 
-@keyframes explanationFadeIn {
+@keyframes feedbackEnter {
   from {
     opacity: 0;
-    transform: translateY(5px);
+    transform: translate(-50%, -50%) scale(0.5);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.feedback-content {
+  padding: 32px 48px;
+  border-radius: 20px;
+  font-size: 24px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.feedback-content.correct {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #ffffff;
+  border: none;
+}
+
+.feedback-content.incorrect {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #ffffff;
+  border: none;
+  font-size: 20px;
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+
+/* Explanation */
+.challenge-explanation {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 600px;
+  padding: 24px 40px;
+  background: rgba(15, 15, 25, 0.95);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  z-index: 99;
+  animation: explanationSlide 0.4s ease;
+}
+
+@keyframes explanationSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 
 .challenge-explanation p {
   margin: 0;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1.6;
   color: #cbd5e1;
-  font-style: italic;
+  text-align: center;
 }
 
-/* ================================================
+/* ============================================
+   MODE COMPLETION
+   ============================================ */
+
+.mode-completion {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 40px;
+  animation: completionEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes completionEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.completion-icon {
+  font-size: 120px;
+  margin-bottom: 32px;
+  animation: iconBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 0 40px rgba(16, 185, 129, 0.6));
+}
+
+@keyframes iconBounce {
+  0% {
+    transform: scale(0) rotate(-180deg);
+  }
+  60% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.completion-title {
+  font-size: 56px;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.completion-message {
+  font-size: 18px;
+  color: #94a3b8;
+  margin: 0 0 48px 0;
+  max-width: 500px;
+}
+
+.completion-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.action-btn {
+  padding: 18px 36px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: #ffffff;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.5);
+}
+
+.action-btn.primary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(139, 92, 246, 0.7);
+}
+
+.action-btn.secondary {
+  background: rgba(139, 92, 246, 0.1);
+  color: #a78bfa;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.action-btn.secondary:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+/* ============================================
    RESPONSIVE
-   ================================================ */
+   ============================================ */
 
-@media (max-width: 640px) {
-  .challenge-card {
-    padding: 36px 24px;
-    width: 95%;
-  }
-
-  .challenge-badge {
-    width: 56px;
-    height: 56px;
+@media (max-width: 768px) {
+  .challenge-question {
     font-size: 24px;
+    margin-bottom: 40px;
   }
 
-  .challenge-title {
-    font-size: 22px;
-  }
-
-  .challenge-prompt {
-    font-size: 18px;
+  .challenge-options {
+    grid-template-columns: 1fr;
   }
 
   .challenge-option-btn {
-    padding: 16px 20px;
-    font-size: 14px;
+    font-size: 16px;
+    padding: 24px 28px;
   }
 
-  .feedback-content {
-    font-size: 15px;
-    padding: 14px 20px;
+  .completion-title {
+    font-size: 40px;
   }
-}
 
-.array-visual {
-  display: flex;
-  gap: 14px;
-  margin-top: 16px;
-}
+  .completion-actions {
+    flex-direction: column;
+    width: 100%;
+  }
 
-.array-item {
-  width: 48px;
-  height: 48px;
-  background: rgba(15, 15, 25, 0.8);
-  border: 2px solid rgba(139, 92, 246, 0.25);
-  border-radius: 10px;
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  .mode-selector {
+    flex-direction: column;
+    gap: 8px;
+  }
 
-  font-weight: 600;
-  color: #e5e7eb;
-
-  transition: all 0.25s ease;
-}
-
-.array-item.active {
-  background: rgba(139, 92, 246, 0.25);
-  border-color: rgba(139, 92, 246, 0.8);
-  color: #ffffff;
-
-  transform: translateY(-6px) scale(1.05);
-  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.5);
-}
-
-.challenge-finish {
-  margin-top: 120px;
-  text-align: center;
-  max-width: 600px;
-}
-
-.challenge-finish h2 {
-  font-size: 28px;
-  margin-bottom: 16px;
-}
-
-.challenge-finish p {
-  font-size: 16px;
-  color: #cbd5e1;
-  margin-bottom: 32px;
-}
-
-.finish-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-}
-
-.finish-actions button {
-  padding: 12px 20px;
-  border-radius: 10px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  background: rgba(139, 92, 246, 0.2);
-  color: #fff;
+  .mode-tab {
+    width: 100%;
+  }
 }
