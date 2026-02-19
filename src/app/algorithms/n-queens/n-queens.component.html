@@ -1,1 +1,545 @@
-<p>n-queens works!</p>
+<div class="visualizer-container">
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button class="tab-btn"
+            [class.active]="activeTab === 'overview'"
+            (click)="activeTab = 'overview'">
+      <span class="tab-icon"><i class="fa-solid fa-book-open"></i></span>
+      Overview
+    </button>
+    <button class="tab-btn"
+            [class.active]="activeTab === 'visualization'"
+            (click)="activeTab = 'visualization'">
+      <span class="tab-icon"><i class="fa-solid fa-play"></i></span>
+      Visualization
+    </button>
+    <button class="tab-btn"
+            [class.active]="activeTab === 'complexity'"
+            (click)="activeTab = 'complexity'">
+      <span class="tab-icon"><i class="fa-solid fa-chart-line"></i></span>
+      Complexity
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 1: OVERVIEW
+  ═══════════════════════════════════════════ -->
+  <div class="tab-content" *ngIf="activeTab === 'overview'">
+    <div class="overview-container">
+
+      <div class="overview-hero">
+        <div class="queen-crown">♛</div>
+        <h1 class="overview-title">N-Queens Problem</h1>
+        <p class="overview-subtitle">Place N non-attacking queens on an N×N chessboard.</p>
+      </div>
+
+      <div class="overview-content">
+
+        <div class="overview-section">
+          <div class="section-icon"><i class="fa-solid fa-chess-queen"></i></div>
+          <h2>What is it?</h2>
+          <p>The N-Queens problem asks: can you place N chess queens on an N×N board so that no two queens threaten each other? A queen attacks every cell in her row, column, and both diagonals. The goal is to find a placement where no queen can capture another.</p>
+        </div>
+
+        <div class="overview-section">
+          <div class="section-icon"><i class="fa-solid fa-rotate-left"></i></div>
+          <h2>How does backtracking solve it?</h2>
+          <p>We go row by row. For each row, we try placing a queen in every column. If a column is safe (not attacked by any placed queen), we place her and recurse to the next row. If we reach a dead end, we <strong>backtrack</strong> — remove the last queen and try the next column. This explores all possibilities systematically, pruning dead branches early.</p>
+        </div>
+
+        <div class="overview-section">
+          <div class="section-icon"><i class="fa-solid fa-bullseye"></i></div>
+          <h2>When is backtracking useful?</h2>
+          <ul class="feature-list">
+            <li><strong>Constraint satisfaction</strong> — When choices must satisfy strict rules</li>
+            <li><strong>Combinatorial search</strong> — Finding valid arrangements among exponential possibilities</li>
+            <li><strong>Puzzle solving</strong> — Sudoku, crosswords, maze navigation</li>
+            <li><strong>Optimization</strong> — Graph coloring, scheduling problems</li>
+          </ul>
+        </div>
+
+        <div class="key-idea-box">
+          <div class="key-idea-header">
+            <span class="lightbulb"><i class="fa-solid fa-lightbulb"></i></span>
+            <span>Key Insight</span>
+          </div>
+          <p>Since queens attack entire rows, we only ever need <strong>one queen per row</strong>. This reduces the search space from placing N queens anywhere on N² cells to just picking one column per row — turning an impossible brute-force into a manageable tree search.</p>
+        </div>
+
+        <div class="attack-visual">
+          <div class="attack-title">Queen Attack Pattern</div>
+
+          <!-- Phase label with animated indicator -->
+          <div class="phase-indicator">
+            <div class="phase-dots">
+              <div class="phase-dot" [class.active]="miniPhase === 0"></div>
+              <div class="phase-dot" [class.active]="miniPhase === 1"></div>
+              <div class="phase-dot" [class.active]="miniPhase === 2"></div>
+              <div class="phase-dot" [class.active]="miniPhase === 3"></div>
+            </div>
+            <span class="phase-label">{{ miniPhaseLabel }}</span>
+          </div>
+
+          <div class="mini-board">
+            <div class="mini-row" *ngFor="let row of miniBoard; let r = index">
+              <div class="mini-cell"
+                   *ngFor="let col of miniBoard; let c = index"
+                   [class.mini-light]="(r + c) % 2 === 0"
+                   [class.mini-dark]="(r + c) % 2 !== 0"
+                   [class.mini-queen]="isMiniQueenCell(r, c)"
+                   [class.mini-highlight]="isMiniHighlight(r, c)">
+                <span *ngIf="isMiniQueenCell(r, c)">♛</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="attack-caption">A queen controls her row, column, and both diagonals — each direction shown in sequence above.</p>
+        </div>
+
+        <div class="cta-box">
+          <p>Ready to watch backtracking in action?</p>
+          <button class="cta-button" (click)="activeTab = 'visualization'">
+            Watch the Visualization →
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 2: VISUALIZATION
+  ═══════════════════════════════════════════ -->
+  <div class="tab-content" *ngIf="activeTab === 'visualization'">
+    <div class="split-container">
+
+      <!-- LEFT: Code Panel -->
+      <div class="code-panel" [style.width.%]="codePanelWidth">
+        <div class="panel-header">
+          <div class="header-title">
+            <span class="code-icon">&lt;/&gt;</span>
+            <h3>Algorithm Code</h3>
+          </div>
+          <div class="language-badge">Python</div>
+        </div>
+
+        <div class="code-content" #codeScroller>
+          <pre class="code-block"><code><span class="code-line"
+      [class.active]="isLineActive(1)"
+      [class.dim]="!isLineActive(1) && !!currentStep"
+      #line1><span class="line-number">1</span><span class="keyword">def</span> <span class="function">backtrack</span>(row):</span>
+<span class="code-line"
+      [class.active]="isLineActive(2)"
+      [class.dim]="!isLineActive(2) && !!currentStep"
+      #line2><span class="line-number">2</span>    <span class="keyword">for</span> col <span class="keyword">in</span> <span class="function">range</span>(n):</span>
+<span class="code-line"
+      [class.active]="isLineActive(3)"
+      [class.dim]="!isLineActive(3) && !!currentStep"
+      #line3><span class="line-number">3</span>        <span class="keyword">if</span> <span class="function">is_safe</span>(row, col):</span>
+<span class="code-line"
+      [class.active]="isLineActive(4)"
+      [class.dim]="!isLineActive(4) && !!currentStep"
+      #line4><span class="line-number">4</span>            <span class="comment"># check each placed queen</span></span>
+<span class="code-line"
+      [class.active]="isLineActive(5)"
+      [class.dim]="!isLineActive(5) && !!currentStep"
+      #line5><span class="line-number">5</span>            board[row] = col</span>
+<span class="code-line"
+      [class.active]="isLineActive(6)"
+      [class.dim]="!isLineActive(6) && !!currentStep"
+      #line6><span class="line-number">6</span>            board[row] = <span class="number">-1</span>  <span class="comment"># backtrack</span></span></code></pre>
+
+          <div class="live-explanation" *ngIf="currentStep">
+            <div class="explanation-header">
+              <span class="explanation-icon"><i class="fa-solid fa-lightbulb"></i></span>
+              <span class="explanation-title">What's happening?</span>
+            </div>
+            <p class="explanation-text">{{ getLineExplanation(currentStep.line) }}</p>
+          </div>
+
+          <div class="complexity-info">
+            <div class="complexity-item">
+              <span class="complexity-label">Time Complexity</span>
+              <span class="complexity-value">O(N!)</span>
+            </div>
+            <div class="complexity-item">
+              <span class="complexity-label">Space Complexity</span>
+              <span class="complexity-value">O(N)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resizer -->
+      <div class="resizer"
+           (mousedown)="onResizerMouseDown($event)"
+           (touchstart)="onResizerTouchStart($event)">
+        <div class="resizer-line"></div>
+        <div class="resizer-handle">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <circle cx="4" cy="8" r="1.5"/>
+            <circle cx="8" cy="8" r="1.5"/>
+            <circle cx="12" cy="8" r="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- RIGHT: Visualization Panel -->
+      <div class="visualization-panel" [style.width.%]="100 - codePanelWidth">
+
+        <div class="panel-header" [class.compact]="steps.length > 0">
+          <div class="header-title">
+            <span class="viz-icon">♛</span>
+            <h3>Live Visualization</h3>
+          </div>
+
+          <div class="input-controls-compact" *ngIf="steps.length > 0">
+            <span class="input-display">N = {{ n }}</span>
+            <button class="edit-button" (click)="resetToEdit()">
+              <i class="fa-solid fa-pen-to-square"></i> Edit
+            </button>
+          </div>
+        </div>
+
+        <div class="viz-content">
+
+          <!-- ACTIVE VISUALIZATION -->
+          <div class="animation-area" *ngIf="currentStep && steps.length > 0">
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+              <div class="status-left">
+                <div class="status-icon" [style.color]="getActionColor(currentStep.action)">
+                  {{ getActionIcon(currentStep.action) }}
+                </div>
+                <div class="status-info">
+                  <div class="status-message">{{ currentStep.message }}</div>
+                  <div class="status-detail"
+                       *ngIf="currentStep.variables?.row !== undefined || currentStep.variables?.col !== undefined">
+                    <ng-container *ngIf="currentStep.variables.row !== undefined">
+                      Row <span class="highlight">{{ currentStep.variables.row }}</span>
+                    </ng-container>
+                    <ng-container *ngIf="currentStep.variables.col !== undefined">
+                      · Col <span class="highlight">{{ currentStep.variables.col }}</span>
+                    </ng-container>
+                    <ng-container *ngIf="currentStep.variables.check_row !== undefined">
+                      · Checking queen at row <span class="highlight">{{ currentStep.variables.check_row }}</span>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+              <div class="status-badge" [style.background]="getActionColor(currentStep.action)">
+                {{ getActionLabel(currentStep.action) }}
+              </div>
+            </div>
+
+            <!-- CHESSBOARD -->
+            <div class="board-wrapper">
+              <div class="chessboard">
+                <div class="board-row" *ngFor="let row of boardRows; let r = index">
+                  <div class="board-cell"
+                       *ngFor="let col of boardCols; let c = index"
+                       [class.light-square]="(r + c) % 2 === 0"
+                       [class.dark-square]="(r + c) % 2 !== 0"
+                       [class.queen-placed]="board[r] === c && board[r] !== -1 && !isBacktrackCell(r, c)"
+                       [class.cell-attack]="isAttackCell(r, c)"
+                       [class.cell-try]="isTryCell(r, c)"
+                       [class.cell-conflict]="isTryConflictCell(r, c)"
+                       [class.cell-backtrack]="isBacktrackCell(r, c)">
+
+                    <!-- Placed queen (solid, already committed) -->
+                    <span class="queen-icon placed-queen"
+                          *ngIf="board[r] === c && board[r] !== -1 && !isTryCell(r, c) && !isBacktrackCell(r, c)">
+                      ♛
+                    </span>
+
+                    <!-- Try queen — normal attempt (no conflict) -->
+                    <span class="queen-icon try-queen"
+                          *ngIf="isTryCell(r, c) && !isTryConflict">
+                      ♕
+                    </span>
+
+                    <!-- Try queen — CONFLICTING position (warning state) -->
+                    <span class="queen-icon try-queen conflict-queen"
+                          *ngIf="isTryConflictCell(r, c)">
+                      ♕
+                    </span>
+
+                    <!-- Backtrack queen — fading ghost -->
+                    <span class="queen-icon ghost-queen"
+                          *ngIf="isBacktrackCell(r, c)">
+                      ♛
+                    </span>
+
+                    <!-- Row/col labels -->
+                    <span class="col-label" *ngIf="r === n - 1">{{ c }}</span>
+                    <span class="row-label" *ngIf="c === 0">{{ r }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Queens placed counter -->
+              <div class="queens-counter">
+                <div class="counter-item" *ngFor="let qi of queensPlaced; let i = index"
+                     [class.placed]="true">
+                  <span class="counter-queen">♛</span>
+                  <span class="counter-row">R{{ i }}</span>
+                </div>
+                <div class="counter-item empty"
+                     *ngFor="let qi of queensRemaining">
+                  <span class="counter-queen empty-queen">·</span>
+                </div>
+              </div>
+
+              <!-- Color legend -->
+              <div class="board-legend">
+                <div class="legend-item">
+                  <div class="legend-swatch swatch-placed"></div>
+                  <span>Placed ♛</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-swatch swatch-attack"></div>
+                  <span>Blocked line</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-swatch swatch-try"></div>
+                  <span>Trying ♕</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-swatch swatch-conflict"></div>
+                  <span>Can't place!</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-section">
+              <div class="progress-label">
+                <span>Step {{ currentStepIndex + 1 }} of {{ steps.length }}</span>
+                <span>{{ progressPercentage.toFixed(0) }}%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill"
+                     [style.width.%]="progressPercentage"
+                     [style.background]="getActionColor(currentStep.action)">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- INPUT STATE (before solving) -->
+          <div class="input-center-state" *ngIf="!currentStep || steps.length === 0">
+            <div class="input-card">
+              <div class="input-queen-icon">♛</div>
+              <h3>Configure N-Queens</h3>
+              <p class="input-subtitle">Choose N to set the board size and number of queens</p>
+
+              <div class="input-form">
+                <div class="form-group">
+                  <label>Board Size (N)</label>
+                  <div class="n-selector">
+                    <button class="n-btn"
+                            *ngFor="let val of [4, 5, 6, 7, 8]"
+                            [class.selected]="n === val"
+                            (click)="n = val">
+                      {{ val }}
+                    </button>
+                  </div>
+                  <p class="n-hint">N={{ n }}: placing {{ n }} queens on a {{ n }}×{{ n }} board</p>
+                </div>
+
+                <button class="run-button-large" (click)="solve()">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  Run Visualization
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="control-panel" *ngIf="steps.length > 0">
+          <div class="playback-controls">
+            <button class="ctrl-btn" (click)="handleReset()" title="Reset">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+              </svg>
+            </button>
+
+            <button class="ctrl-btn"
+                    (click)="handlePrevious()"
+                    [disabled]="currentStepIndex === 0"
+                    title="Previous">◀</button>
+
+            <button class="ctrl-btn play-btn"
+                    (click)="handlePlayPause()"
+                    title="Play/Pause">
+              <ng-container *ngIf="isPlaying">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16"/>
+                  <rect x="14" y="4" width="4" height="16"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngIf="!isPlaying">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+              </ng-container>
+            </button>
+
+            <button class="ctrl-btn"
+                    (click)="handleNext()"
+                    [disabled]="currentStepIndex >= steps.length - 1"
+                    title="Next">▶</button>
+          </div>
+
+          <div class="speed-control">
+            <span class="speed-label">Speed</span>
+            <input type="range"
+                   min="200"
+                   max="2000"
+                   step="100"
+                   [(ngModel)]="speed"
+                   (input)="onSpeedChange()"
+                   class="speed-slider" />
+            <span class="speed-value">{{ getSpeedLabel() }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 3: COMPLEXITY
+  ═══════════════════════════════════════════ -->
+  <div class="tab-content" *ngIf="activeTab === 'complexity'">
+    <div class="complexity-container">
+
+      <div class="complexity-hero">
+        <h1 class="complexity-title">Performance Analysis</h1>
+        <p class="complexity-subtitle">Understanding how N-Queens backtracking performs</p>
+      </div>
+
+      <div class="complexity-grid">
+
+        <!-- Time Complexity -->
+        <div class="complexity-card time-card">
+          <div class="card-header">
+            <div class="card-icon"><i class="fa-solid fa-stopwatch"></i></div>
+            <h2>Time Complexity</h2>
+          </div>
+          <div class="big-o">O(N!)</div>
+          <div class="card-content">
+            <h3>What does this mean?</h3>
+            <p>In the worst case, the algorithm explores a number of arrangements proportional to N factorial. For N = 8, that's up to 40,320 possibilities — though backtracking prunes most branches early.</p>
+
+            <h3>Why O(N!)?</h3>
+            <p>Row by row, the choices narrow:</p>
+            <ul>
+              <li>Row 0 has <strong>N column choices</strong></li>
+              <li>Row 1 has at most <strong>N−1 safe columns</strong></li>
+              <li>Row 2 has at most <strong>N−2 safe columns</strong></li>
+              <li>…and so on, giving N × (N-1) × (N-2) × … × 1 = <strong>N!</strong></li>
+            </ul>
+            <p>Backtracking prunes branches where <code>is_safe</code> fails early, making the practical runtime far better than the theoretical worst case.</p>
+
+            <div class="example-box">
+              <div class="example-title">Real-world scale</div>
+              <p>N=8 has 92 solutions found among ~40K paths. N=16 has 14.7M solutions but backtracking makes it tractable. N=20 takes seconds, not minutes.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Space Complexity -->
+        <div class="complexity-card space-card">
+          <div class="card-header">
+            <div class="card-icon"><i class="fa-solid fa-floppy-disk"></i></div>
+            <h2>Space Complexity</h2>
+          </div>
+          <div class="big-o">O(N)</div>
+          <div class="card-content">
+            <h3>What does this mean?</h3>
+            <p>We use memory proportional to N — the depth of the recursion stack and the board array. Even for large N, the memory footprint stays small.</p>
+
+            <h3>Why O(N)?</h3>
+            <p>The algorithm only stores:</p>
+            <ul>
+              <li>The <code>board</code> array of size N (one column index per row)</li>
+              <li>The call stack — at most N frames deep (one per row)</li>
+              <li>No extra data structures are needed</li>
+            </ul>
+            <p>This is remarkably efficient: a 1000-queens board would only need ~1000 integers, not a 1,000,000-cell grid.</p>
+
+            <div class="example-box">
+              <div class="example-title">Real-world example</div>
+              <p>Like keeping a single notepad where you write which column each queen sits in, erasing and rewriting as you backtrack. One line per row, N lines total.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Backtracking comparison table -->
+      <div class="comparison-section">
+        <h2>Backtracking vs Brute Force</h2>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Approach</th>
+              <th>States Explored (N=8)</th>
+              <th>Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="best-case">
+              <td><strong>Backtracking (this)</strong></td>
+              <td>~15,720 nodes</td>
+              <td>Prunes invalid branches at each row</td>
+            </tr>
+            <tr class="average-case">
+              <td><strong>Brute Force (permutations)</strong></td>
+              <td>40,320 permutations</td>
+              <td>Tests every column ordering, checks validity after</td>
+            </tr>
+            <tr class="worst-case">
+              <td><strong>Pure Brute Force (all cells)</strong></td>
+              <td>4,426,165,368 placements</td>
+              <td>Tries every way to place 8 pieces on 64 squares</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- N-Queens solutions count table -->
+      <div class="comparison-section" style="margin-top: 32px;">
+        <h2>Solutions by Board Size</h2>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>N (Board Size)</th>
+              <th>Number of Solutions</th>
+              <th>Unique Solutions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>4×4</strong></td><td>2</td><td>1</td></tr>
+            <tr><td><strong>5×5</strong></td><td>10</td><td>2</td></tr>
+            <tr><td><strong>6×6</strong></td><td>4</td><td>1</td></tr>
+            <tr><td><strong>7×7</strong></td><td>40</td><td>6</td></tr>
+            <tr class="best-case"><td><strong>8×8</strong></td><td>92</td><td>12</td></tr>
+            <tr><td><strong>12×12</strong></td><td>14,200</td><td>1,787</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>

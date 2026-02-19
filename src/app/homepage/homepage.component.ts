@@ -41,6 +41,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       route: '/bubble-sort',
       category: 'Sorting',
     },
+    {
+      title: "N - Queens",
+      tagline: "Place N queens on an N x N chessboard",
+      route: "/n-queens",
+      category: "Backtracking"
+    },
   ];
 
   constructor(

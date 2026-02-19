@@ -4,8 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { AlgorithmService } from '../../services/algorithm.service';
 
-
-
 interface Step {
   step: number;
   line: number;

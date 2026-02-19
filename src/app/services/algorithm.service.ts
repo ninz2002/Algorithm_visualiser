@@ -27,4 +27,11 @@ export class AlgorithmService {
   getAlgorithm(key: string): Observable<Algorithm> {
     return this.http.get<Algorithm>(`${this.API_URL}/${key}`);
   }
+
+  solveNQueens(n: number) {
+  return this.http.post<any>('http://localhost:5000/n-queens', {
+    n: n
+  });
+}
+
 }

@@ -16,7 +16,7 @@
        MODE SELECTOR TABS
        ============================================ -->
 
-  <div class="mode-selector" *ngIf = "challengeSet">
+  <div class="mode-selector" *ngIf="challengeSet">
     <button
       *ngFor="let mode of modes"
       class="mode-tab"
@@ -43,7 +43,7 @@
        PROGRESS BAR
        ============================================ -->
 
-  <div class="progress-container" *ngIf="currentModeData && totalQuestions !== 0 && !showModeCompletion">
+  <div class="progress-container" *ngIf="currentMode !== 'construct' && currentModeData && totalQuestions !== 0 && !showModeCompletion">
     <div class="progress-label">
       <span>Question {{ currentQuestionIndex + 1 }} of {{ totalQuestions }}</span>
       <span>{{ progressPercentage.toFixed(0) }}%</span>
@@ -57,7 +57,7 @@
        QUESTION CARD
        ============================================ -->
 
-  <div class="challenge-card" *ngIf="currentQuestion && totalQuestions !== 0 && !showModeCompletion">
+  <div class="challenge-card" *ngIf="currentMode !== 'construct' && currentQuestion && totalQuestions !== 0 && !showModeCompletion">
     
     <div class="challenge-question">
       {{ currentQuestion.prompt }}
@@ -88,7 +88,7 @@
     </div>
 
     <div class="challenge-hint" *ngIf="showHint && currentQuestion.hint">
-  💡 Hint: {{ currentQuestion.hint }}
+      💡 Hint: {{ currentQuestion.hint }}
     </div>
 
     <!-- Explanation -->
@@ -103,8 +103,74 @@
       Continue
     </button>
 
+  </div>
+
+  <!-- ============================================
+       CONSTRUCT MODE
+       ============================================ -->
+
+  <div class="construct-section"
+       *ngIf="currentMode === 'construct' && !showModeCompletion">
+
+    <div class="construct-header">
+      <h3>Construct Challenge</h3>
+      <p>Place queens row by row without conflicts.</p>
+    </div>
+
+    <!-- BOARD -->
+    <div class="construct-board">
+      <div
+        class="construct-row"
+        *ngFor="let r of constructBoard; let rowIndex = index">
+
+        <div
+          class="construct-cell"
+          *ngFor="let c of constructBoard; let colIndex = index"
+          (click)="rowIndex === constructCurrentRow && onConstructCellClick(rowIndex, colIndex)"
+          [class.queen]="constructBoard[rowIndex] === colIndex"
+          [class.conflict-path]="constructAttackCells.has(rowIndex + '-' + colIndex)"
+          [class.active-row]="rowIndex === constructCurrentRow"
+          [class.shaking]="isShaking(rowIndex, colIndex)">
+
+          <span *ngIf="constructBoard[rowIndex] === colIndex">♛</span>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS — only shows on success, no failure message -->
+    <div class="construct-status">
+      <p *ngIf="constructStatus === 'success'" class="success">
+        ✓ Valid solution found!
+      </p>
+    </div>
+
+    <!-- SMART BACKTRACK HINT — appears only when board is provably stuck -->
+    <div class="construct-hint" *ngIf="showBacktrackHint && constructStatus === 'playing'">
+      <span class="hint-icon">🤔</span>
+      <span class="hint-text">
+        Hmm... this path seems stuck. Maybe try backtracking?
+      </span>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="construct-controls">
+      <button
+        class="action-btn secondary"
+        (click)="backtrack()"
+        [disabled]="constructCurrentRow === 0">
+        ← Backtrack
+      </button>
+
+      <button
+        class="action-btn primary"
+        (click)="resetConstruct()">
+        Restart
+      </button>
+    </div>
 
   </div>
+
 
   <!-- ============================================
        MODE COMPLETION
@@ -127,16 +193,20 @@
         Excellent execution tracing! Now test your predictive skills.
       </ng-container>
       <ng-container *ngIf="currentMode === 'predict'">
-        Incredible! You've completed all challenges for this algorithm.
+        Ready to execute it yourself? Try Construct mode next.
+      </ng-container>
+      <ng-container *ngIf="currentMode === 'construct'">
+        You've successfully constructed a valid solution! Great job!
       </ng-container>
     </p>
 
     <div class="completion-actions">
       <button 
         class="action-btn primary"
-        *ngIf="currentMode !== 'predict'"
+        *ngIf="currentMode !== 'construct'"
         (click)="continueToNextMode()">
-        Continue to {{ currentMode === 'quiz' ? 'Trace' : 'Predict' }}
+        Continue to {{ currentMode === 'quiz' ? 'Trace' :
+         currentMode === 'trace' ? 'Predict' : 'Construct' }} Mode
         <i class="fa-solid fa-arrow-right"></i>
       </button>
 

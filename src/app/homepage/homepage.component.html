@@ -48,6 +48,18 @@
               <span>25</span>
               <span>64</span>
             </div>
+
+            <!-- N-Queens Preview -->
+            <div class="chess-board-preview" *ngIf="algo.route === '/n-queens'">
+              <div class="chess-row">
+                <span class="chess-cell"></span>
+                <span class="chess-cell queen">♛</span>
+              </div>
+              <div class="chess-row">
+                <span class="chess-cell queen">♛</span>
+                <span class="chess-cell"></span>
+              </div>
+            </div>
           </div>
 
           <div class="tile-info">

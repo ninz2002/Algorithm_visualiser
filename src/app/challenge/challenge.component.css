@@ -9,7 +9,6 @@
   overflow: hidden;
 }
 
-/* Aggressive gradient background */
 .challenge-page::before {
   content: '';
   position: absolute;
@@ -27,7 +26,7 @@
 }
 
 /* ============================================
-   COMPACT HEADER
+   HEADER
    ============================================ */
 
 .challenge-header {
@@ -72,7 +71,7 @@
 }
 
 /* ============================================
-   MODE SELECTOR (stages not tabs)
+   MODE SELECTOR
    ============================================ */
 
 .mode-selector {
@@ -130,22 +129,12 @@
   transform: scale(0.95);
 }
 
-.mode-icon {
-  font-size: 16px;
-}
-
-.mode-name {
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.mode-status {
-  font-size: 12px;
-  margin-left: 4px;
-}
+.mode-icon { font-size: 16px; }
+.mode-name { font-size: 13px; font-weight: 700; }
+.mode-status { font-size: 12px; margin-left: 4px; }
 
 /* ============================================
-   PROGRESS BAR (subtle, top)
+   PROGRESS BAR
    ============================================ */
 
 .progress-container {
@@ -196,7 +185,7 @@
 }
 
 /* ============================================
-   CHALLENGE CARD (the hero section)
+   CHALLENGE CARD
    ============================================ */
 
 .challenge-card {
@@ -213,7 +202,6 @@
   z-index: 1;
 }
 
-/* THE QUESTION - massive, centered */
 .challenge-question {
   font-size: 32px;
   font-weight: 700;
@@ -223,21 +211,15 @@
   text-align: center;
   font-family: 'Space Grotesk', -apple-system, sans-serif;
   letter-spacing: -0.5px;
+  white-space: pre-line;
   animation: questionEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes questionEnter {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Options - high contrast, risky feeling */
 .challenge-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -281,18 +263,9 @@
   box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4);
 }
 
-.challenge-option-btn:hover:not(:disabled)::before {
-  opacity: 1;
-}
-
-.challenge-option-btn:active:not(:disabled) {
-  transform: translateY(-2px) scale(0.98);
-}
-
-.challenge-option-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
+.challenge-option-btn:hover:not(:disabled)::before { opacity: 1; }
+.challenge-option-btn:active:not(:disabled) { transform: translateY(-2px) scale(0.98); }
+.challenge-option-btn:disabled { cursor: not-allowed; opacity: 0.6; }
 
 .option-icon {
   font-size: 18px;
@@ -301,17 +274,10 @@
   transition: transform 0.3s;
 }
 
-.challenge-option-btn:hover:not(:disabled) .option-icon {
-  transform: translateX(4px);
-}
+.challenge-option-btn:hover:not(:disabled) .option-icon { transform: translateX(4px); }
 
-.option-text {
-  flex: 1;
-  color: #ffffff;
-  text-align: center;
-}
+.option-text { flex: 1; color: #ffffff; text-align: center; }
 
-/* Correct answer - explosive feedback */
 .challenge-option-btn.correct {
   border-color: #10b981;
   background: rgba(16, 185, 129, 0.2);
@@ -320,18 +286,11 @@
 }
 
 @keyframes correctPulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1.05);
-  }
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.1); }
+  100% { transform: scale(1.05); }
 }
 
-/* Wrong answer - gentle shake, warm orange */
 .challenge-option-btn.incorrect {
   border-color: #f59e0b;
   background: rgba(245, 158, 11, 0.15);
@@ -340,12 +299,12 @@
 
 @keyframes incorrectShake {
   0%, 100% { transform: translateX(0); }
-  33% { transform: translateX(-5px); }
-  66% { transform: translateX(5px); }
+  33%       { transform: translateX(-5px); }
+  66%       { transform: translateX(5px); }
 }
 
 /* ============================================
-   FEEDBACK (direct, not polite)
+   FEEDBACK
    ============================================ */
 
 .challenge-feedback {
@@ -359,14 +318,8 @@
 }
 
 @keyframes feedbackEnter {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .feedback-content {
@@ -383,19 +336,16 @@
 .feedback-content.correct {
   background: linear-gradient(135deg, #10b981, #34d399);
   color: #ffffff;
-  border: none;
 }
 
 .feedback-content.incorrect {
   background: linear-gradient(135deg, #f59e0b, #fbbf24);
   color: #ffffff;
-  border: none;
   font-size: 20px;
   text-transform: none;
   letter-spacing: 0.5px;
 }
 
-/* Explanation */
 .challenge-explanation {
   position: fixed;
   bottom: 40px;
@@ -412,14 +362,8 @@
 }
 
 @keyframes explanationSlide {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 .challenge-explanation p {
@@ -428,6 +372,273 @@
   line-height: 1.6;
   color: #cbd5e1;
   text-align: center;
+}
+
+.challenge-hint {
+  margin-top: 16px;
+  padding: 14px 24px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 10px;
+  font-size: 15px;
+  color: #a78bfa;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  line-height: 1.5;
+  animation: hintFadeIn 0.4s ease;
+  max-width: 600px;
+  text-align: center;
+}
+
+@keyframes hintFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   CONSTRUCT MODE
+   ============================================ */
+
+.construct-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  gap: 28px;
+  position: relative;
+  z-index: 1;
+  animation: questionEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.construct-header {
+  text-align: center;
+}
+
+.construct-header h3 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.construct-header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  font-family: 'Fira Code', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ---- BOARD ---- */
+
+.construct-board {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: rgba(15, 15, 25, 0.8);
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.08),
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.construct-row {
+  display: flex;
+  gap: 4px;
+}
+
+.construct-cell {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  background: rgba(20, 20, 35, 0.9);
+  border: 2px solid rgba(139, 92, 246, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  cursor: default;
+  position: relative;
+  user-select: none;
+}
+
+/* ---- Active row ---- */
+.construct-cell.active-row {
+  border-color: rgba(139, 92, 246, 0.45);
+  background: rgba(139, 92, 246, 0.07);
+  cursor: pointer;
+  animation: activeRowPulse 2s ease-in-out infinite;
+}
+
+@keyframes activeRowPulse {
+  0%, 100% { border-color: rgba(139, 92, 246, 0.35); }
+  50%       { border-color: rgba(139, 92, 246, 0.75); box-shadow: 0 0 12px rgba(139, 92, 246, 0.25); }
+}
+
+.construct-cell.active-row:hover {
+  background: rgba(139, 92, 246, 0.16);
+  border-color: rgba(139, 92, 246, 0.9);
+  transform: scale(1.08);
+  box-shadow: 0 0 22px rgba(139, 92, 246, 0.45);
+  z-index: 2;
+  animation: none;
+}
+
+/* ---- Placed queen ---- */
+.construct-cell.queen {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.22), rgba(236, 72, 153, 0.18));
+  border-color: #8b5cf6;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  animation: queenPlace 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: default;
+}
+
+@keyframes queenPlace {
+  0%   { transform: scale(0.4) rotate(-20deg); opacity: 0; }
+  70%  { transform: scale(1.15) rotate(4deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* ---- Conflict path highlight ---- */
+/* Only the specific column / diagonal causing the conflict */
+.construct-cell.conflict-path {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.1);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+/* The offending queen that caused the conflict gets a stronger highlight */
+.construct-cell.queen.conflict-path {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  animation: conflictQueenPulse 0.6s ease-in-out;
+}
+
+@keyframes conflictQueenPulse {
+  0%   { box-shadow: 0 0 0px rgba(239, 68, 68, 0); }
+  50%  { box-shadow: 0 0 30px rgba(239, 68, 68, 0.75); }
+  100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.55); }
+}
+
+/* Active row cell in conflict path — cannot place here */
+.construct-cell.active-row.conflict-path {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.5);
+  cursor: not-allowed;
+  animation: none;
+}
+
+.construct-cell.active-row.conflict-path:hover {
+  transform: none;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.75);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
+}
+
+/* ---- Shake — triggered when user clicks an invalid cell ---- */
+.construct-cell.shaking {
+  animation: cellShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both !important;
+}
+
+@keyframes cellShake {
+  0%        { transform: translate(0, 0) rotate(0deg); }
+  15%       { transform: translate(-5px, 0) rotate(-4deg); }
+  30%       { transform: translate(5px, 0) rotate(4deg); }
+  45%       { transform: translate(-4px, 0) rotate(-2deg); }
+  60%       { transform: translate(4px, 0) rotate(2deg); }
+  75%       { transform: translate(-2px, 0) rotate(-1deg); }
+  90%       { transform: translate(2px, 0) rotate(0deg); }
+  100%      { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ---- STATUS ---- */
+
+.construct-status {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.construct-status p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Fira Code', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #64748b;
+}
+
+.construct-status p.success {
+  color: #10b981;
+  font-size: 15px;
+  letter-spacing: 2px;
+  animation: successGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes successGlow {
+  from { text-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+  to   { text-shadow: 0 0 20px rgba(16, 185, 129, 0.9); }
+}
+
+/* ---- SMART BACKTRACK HINT ---- */
+
+.construct-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 12px;
+  max-width: 380px;
+  animation: hintSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes hintSlideIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.hint-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  animation: hintIconWobble 2s ease-in-out infinite;
+}
+
+@keyframes hintIconWobble {
+  0%, 100% { transform: rotate(0deg); }
+  20%       { transform: rotate(-10deg); }
+  40%       { transform: rotate(10deg); }
+  60%       { transform: rotate(-5deg); }
+  80%       { transform: rotate(5deg); }
+}
+
+.hint-text {
+  font-size: 14px;
+  color: #fbbf24;
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ---- CONTROLS ---- */
+
+.construct-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
 }
 
 /* ============================================
@@ -446,14 +657,8 @@
 }
 
 @keyframes completionEnter {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .completion-icon {
@@ -464,15 +669,9 @@
 }
 
 @keyframes iconBounce {
-  0% {
-    transform: scale(0) rotate(-180deg);
-  }
-  60% {
-    transform: scale(1.2) rotate(10deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
+  0%   { transform: scale(0) rotate(-180deg); }
+  60%  { transform: scale(1.2) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 
 .completion-title {
@@ -497,6 +696,10 @@
   display: flex;
   gap: 16px;
 }
+
+/* ============================================
+   SHARED ACTION BUTTONS
+   ============================================ */
 
 .action-btn {
   padding: 18px 36px;
@@ -536,6 +739,13 @@
   border-color: rgba(139, 92, 246, 0.5);
 }
 
+.action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* ============================================
    RESPONSIVE
    ============================================ */
@@ -559,7 +769,8 @@
     font-size: 40px;
   }
 
-  .completion-actions {
+  .completion-actions,
+  .construct-controls {
     flex-direction: column;
     width: 100%;
   }
@@ -576,5 +787,16 @@
 
   .mode-tab {
     width: 100%;
+  }
+
+  .construct-cell {
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+    border-radius: 8px;
+  }
+
+  .construct-hint {
+    max-width: 100%;
   }
 }

@@ -2,7 +2,7 @@
 // BASIC TYPES
 // ===============================
 
-export type ChallengeMode = 'quiz' | 'trace' | 'predict';
+export type ChallengeMode = 'quiz' | 'trace' | 'predict' | 'construct';
 
 export type ModeStatus =
   | 'locked'
@@ -40,6 +40,22 @@ export interface ChallengeModeData {
 }
 
 // ===============================
+// CONSTRUCT MODE STRUCTURE
+// ===============================
+
+export interface ConstructModeData {
+  title: string;
+  icon: string;
+
+  // configuration
+  boardSize: number;
+
+  // optional metadata
+  description?: string;
+}
+
+
+// ===============================
 // FULL CHALLENGE SET
 // ===============================
 
@@ -49,4 +65,5 @@ export interface ChallengeSet {
   quiz: ChallengeModeData;
   trace: ChallengeModeData;
   predict: ChallengeModeData;
+  construct?: ConstructModeData;
 }
