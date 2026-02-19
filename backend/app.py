@@ -179,5 +179,103 @@ def bubble_sort():
 
     return jsonify({"steps": steps})
 
+
+@app.route('/n-queens', methods=['POST'])
+def n_queens():
+    body = request.json
+
+    if not body or "n" not in body:
+        return jsonify({"error": "Invalid input"}), 400
+
+    n = body["n"]
+
+    board = [-1] * n
+    steps = []
+    step_no = 1
+
+    def snapshot():
+        return {
+            "board": board.copy()
+        }
+
+    def add_step(line, action, message, variables=None):
+        nonlocal step_no
+        steps.append({
+            "step": step_no,
+            "line": line,
+            "action": action,
+            "variables": variables or {},
+            "data": snapshot(),
+            "message": message
+        })
+        step_no += 1
+
+    def is_safe(row, col):
+        for r in range(row):
+            add_step(
+                line=4,
+                action="check",
+                message=f"Checking conflict with queen at row {r}",
+                variables={"row": row, "col": col, "check_row": r}
+            )
+
+            if board[r] == col or abs(board[r] - col) == abs(r - row):
+                return False
+        return True
+
+    def backtrack(row):
+        if row == n:
+            add_step(
+                line=1,
+                action="success",
+                message="All queens placed successfully"
+            )
+            return True
+
+        for col in range(n):
+            add_step(
+                line=2,
+                action="try",
+                message=f"Trying to place queen at row {row}, col {col}",
+                variables={"row": row, "col": col}
+            )
+
+            if is_safe(row, col):
+                board[row] = col
+                add_step(
+                    line=5,
+                    action="place",
+                    message=f"Placed queen at row {row}, col {col}",
+                    variables={"row": row, "col": col}
+                )
+
+                if backtrack(row + 1):
+                    return True
+
+                board[row] = -1
+                add_step(
+                    line=6,
+                    action="remove",
+                    message=f"Backtracking from row {row}, col {col}",
+                    variables={"row": row, "col": col}
+                )
+
+        return False
+
+    add_step(
+        line=1,
+        action="start",
+        message=f"Starting N-Queens for N = {n}"
+    )
+
+    solved = backtrack(0)
+
+    return jsonify({
+        "steps": steps,
+        "solutionFound": solved
+    })
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)

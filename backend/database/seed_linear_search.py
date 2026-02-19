@@ -62,6 +62,33 @@ INSERT OR IGNORE INTO algorithms (
     1
 ))
 
+cursor.execute("""
+INSERT OR IGNORE INTO algorithms (
+    key,
+    name,
+    short_description,
+    time_complexity,
+    best_case,
+    average_case,
+    worst_case,
+    space_complexity,
+    difficulty,
+    category,
+    is_active
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+""", (
+    "n-queens",
+    "N Queens",
+    "The N Queens problem involves placing N queens on an N x N chessboard such that no two queens attack each other.",
+    "O(n!)",
+    "O(n)",
+    "O(n!)",
+    "O(n!)",
+    "O(n)",
+    "Intermediate",
+    "Backtracking",
+    1
+))
 
 conn.commit()
 conn.close()
