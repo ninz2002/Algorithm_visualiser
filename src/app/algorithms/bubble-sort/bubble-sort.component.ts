@@ -4,40 +4,44 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { AlgorithmService } from '../../services/algorithm.service';
 
-
-
 interface Step {
   step: number;
   line: number;
   action: string;
-  variables: { i?: number };
+  variables: { i?: number; j?: number; n?: number };
   data: number[];
   message: string;
 }
 
 @Component({
-  selector: 'app-linear-search',
+  selector: 'app-bubble-sort',
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
-  templateUrl: './linear-search.component.html',
-  styleUrls: ['./linear-search.component.css'],
+  templateUrl: './bubble-sort.component.html',
+  styleUrls: ['./bubble-sort.component.css'],
 })
-export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnInit {
+export class BubbleSortComponent implements OnDestroy, AfterViewChecked, OnInit {
+
+  trackByValue(index: number, value: number): number {
+  return value;
+}
 
   algorithmMeta: any = null;
 
   /* -------------------- DATA -------------------- */
   activeTab: 'overview' | 'visualization' | 'complexity' = 'visualization';
 
-  array: number[] = [15, 7, 23, 9, 42, 18, 31];
-  target = 42;
-  arrayInput = '15, 7, 23, 9, 42, 18, 31';
+  array: number[] = [64, 34, 25, 12, 22, 11, 90];
+  arrayInput = '64, 34, 25, 12, 22, 11, 90';
 
   steps: Step[] = [];
   currentStepIndex = 0;
 
+  // NEW: Visual array for delayed swap updates (so numbers animate with the swap)
+  visualArray: number[] = [...this.array];
+
   isPlaying = false;
-  speed = 1000;
+  speed = 1400;
   private intervalId: any = null;
 
   /* -------------------- SPLIT VIEW -------------------- */
@@ -56,24 +60,28 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
   @ViewChild('line3') line3!: ElementRef;
   @ViewChild('line4') line4!: ElementRef;
   @ViewChild('line5') line5!: ElementRef;
+  @ViewChild('line6') line6!: ElementRef;
+  @ViewChild('line7') line7!: ElementRef;
 
   private lastActiveLine = 0;
 
-  constructor(private http: HttpClient,
+  constructor(
+    private http: HttpClient,
     private algorithmService: AlgorithmService
   ) {}
+
   ngOnInit(): void {
-  this.algorithmService.getAlgorithm('linear-search')
-    .subscribe({
-      next: data => {
-        this.algorithmMeta = data;
-        console.log('ALGO META:', data);
-      },
-      error: err => {
-        console.error('Algorithm metadata load failed', err);
-      }
-    });
-}
+    this.algorithmService.getAlgorithm('bubble-sort')
+      .subscribe({
+        next: data => {
+          this.algorithmMeta = data;
+          console.log('ALGO META:', data);
+        },
+        error: err => {
+          console.error('Algorithm metadata load failed', err);
+        }
+      });
+  }
 
   /* -------------------- GETTERS -------------------- */
 
@@ -89,7 +97,7 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
 
   /* -------------------- BACKEND -------------------- */
 
-  runSearch(): void {
+  runSort(): void {
     this.parseArrayInput();
 
     if (!this.array.length) {
@@ -98,24 +106,43 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     }
 
     this.http
-      .post<{ steps: Step[] }>('http://localhost:5000/linear-search', {
+      .post<{ steps: Step[] }>('http://localhost:5000/bubble-sort', {
         array: this.array,
-        target: this.target,
       })
       .subscribe({
         next: res => {
-          this.steps = res.steps;
+          console.log('RAW STEPS FROM BACKEND:', res.steps);
+
+          // FIX: Convert data to array if it's an object
+          this.steps = res.steps.map(step => {
+            let dataArray: number[] = [];
+
+            // CASE 1: backend sends data as { array: [...] }
+            if (step.data && Array.isArray((step.data as any).array)) {
+              dataArray = [...(step.data as any).array];
+            }
+            // CASE 2: backend already sends array
+            else if (Array.isArray(step.data)) {
+              dataArray = [...step.data];
+            }
+
+            return { ...step, data: dataArray };
+          });
+
+          console.log(this.steps.map(s => s.data.length));
+
           this.currentStepIndex = 0;
+          this.visualArray = [...this.steps[0]?.data || this.array]; // Initialize visual array
           this.isPlaying = false;
           this.clearPlayInterval();
-          
+
           // Auto-start playback after a brief delay
           setTimeout(() => {
             this.handlePlayPause();
           }, 500);
         },
         error: err => {
-          console.error(err);
+          console.error('Backend error:', err);
           alert('Flask backend not reachable on port 5000');
         },
       });
@@ -131,6 +158,7 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
   resetToEdit(): void {
     this.steps = [];
     this.currentStepIndex = 0;
+    this.visualArray = [...this.array];
     this.isPlaying = false;
     this.clearPlayInterval();
   }
@@ -143,6 +171,7 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     // If at end, restart from beginning
     if (this.currentStepIndex >= this.steps.length - 1 && !this.isPlaying) {
       this.currentStepIndex = 0;
+      this.visualArray = [...this.steps[0]?.data || this.array];
     }
 
     this.isPlaying = !this.isPlaying;
@@ -159,13 +188,67 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
 
     this.intervalId = setInterval(() => {
       if (this.currentStepIndex < this.steps.length - 1) {
-        this.currentStepIndex++;
+        this.goToNextStep();
       } else {
         this.isPlaying = false;
         this.clearPlayInterval();
       }
     }, this.speed);
   }
+
+  // NEW: Method to handle step transitions with swap delay
+  private prevPositions = new Map<number, DOMRect>();
+  private capturePositions(): void {
+  this.prevPositions.clear();
+  const cells = document.querySelectorAll('.array-cell');
+  cells.forEach((cell, index) => {
+    this.prevPositions.set(index, cell.getBoundingClientRect());
+  });
+}
+
+private animateFlip(): void {
+  const cells = document.querySelectorAll('.array-cell');
+
+  cells.forEach((cell, index) => {
+    const prev = this.prevPositions.get(index);
+    if (!prev) return;
+
+    const current = cell.getBoundingClientRect();
+    const dx = prev.left - current.left;
+
+    if (dx !== 0) {
+      const el = cell as HTMLElement;
+      el.style.transition = 'none';
+      el.style.transform = `translate(${dx}px, -8px) scale(1.05)`;
+
+
+      requestAnimationFrame(() => {
+        el.style.transition = 'transform 300ms ease';
+        el.style.transform = '';
+      });
+    }
+  });
+}
+
+private goToNextStep(): void {
+  const nextIndex = this.currentStepIndex + 1;
+  const nextStep = this.steps[nextIndex];
+  if (!nextStep) return;
+
+  // 1️⃣ Capture current positions
+  this.capturePositions();
+
+  // 2️⃣ Advance step index (classes update)
+  this.currentStepIndex = nextIndex;
+
+  // 3️⃣ Update visual array (DOM reorders)
+  this.visualArray = [...nextStep.data];
+
+  // 4️⃣ Animate movement
+  requestAnimationFrame(() => {
+    this.animateFlip();
+  });
+}
 
   clearPlayInterval(): void {
     if (this.intervalId) {
@@ -178,21 +261,23 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     this.isPlaying = false;
     this.clearPlayInterval();
     this.currentStepIndex = 0;
+    this.visualArray = [...this.steps[0]?.data || this.array];
   }
 
   handlePrevious(): void {
     this.isPlaying = false;
     this.clearPlayInterval();
-    this.currentStepIndex = Math.max(0, this.currentStepIndex - 1);
+    if (this.currentStepIndex > 0) {
+      this.currentStepIndex--;
+    }
   }
 
   handleNext(): void {
     this.isPlaying = false;
     this.clearPlayInterval();
-    this.currentStepIndex = Math.min(
-      this.steps.length - 1,
-      this.currentStepIndex + 1
-    );
+    if (this.currentStepIndex < this.steps.length - 1) {
+      this.goToNextStep(); // Use the new method for consistent behavior
+    }
   }
 
   onSpeedChange(): void {
@@ -208,21 +293,28 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
   }
 
   getLineExplanation(lineNumber: number): string {
-  switch (lineNumber) {
-    case 1:
-      return 'Starting the linear search function. We receive an array and a target value to find.';
-    case 2:
-      return `We start looping through each element in the array, one by one from index 0 to ${this.array.length - 1}.`;
-    case 3:
-      return `Comparing the current element at index ${this.currentStep?.variables?.i ?? 0} with our target value ${this.target}.`;
-    case 4:
-      return `Match found! The target value ${this.target} is at index ${this.currentStep?.variables?.i ?? 0}. Returning this index and stopping the search.`;
-    case 5:
-      return `We've checked all ${this.array.length} elements in the array and didn't find the target value ${this.target}. Returning -1 to indicate "not found".`;
-    default:
-      return '';
+    const step = this.currentStep;
+    if (!step) return '';
+
+    switch (lineNumber) {
+      case 1:
+        return 'Starting the bubble sort function. We receive an array that needs to be sorted.';
+      case 2:
+        return `Getting the length of the array: n = ${step.variables?.n ?? this.array.length}. This helps us know how many passes we need.`;
+      case 3:
+        return `Outer loop iteration ${(step.variables?.i ?? 0) + 1} of ${step.variables?.n ?? this.array.length}. Each pass will bubble the largest unsorted element to its position.`;
+      case 4:
+        return `Inner loop comparing adjacent elements. We check up to index ${(step.variables?.n ?? this.array.length) - (step.variables?.i ?? 0) - 1} since the last ${step.variables?.i ?? 0} elements are already sorted.`;
+      case 5:
+        return `Comparing elements at index ${step.variables?.j ?? 0} (${this.visualArray[step.variables?.j ?? 0]}) and ${(step.variables?.j ?? 0) + 1} (${this.visualArray[(step.variables?.j ?? 0) + 1]}). Checking if they need to be swapped.`;
+      case 6:
+        return `Swapping! Element ${this.visualArray[step.variables?.j ?? 0]} at index ${step.variables?.j ?? 0} is greater than ${this.visualArray[(step.variables?.j ?? 0) + 1]} at index ${(step.variables?.j ?? 0) + 1}, so we swap them.`;
+      case 7:
+        return 'Bubble sort complete! The array is now fully sorted and we return the result.';
+      default:
+        return '';
+    }
   }
-}
 
   /* -------------------- AUTO-SCROLL CODE -------------------- */
 
@@ -242,6 +334,8 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
       case 3: lineElement = this.line3; break;
       case 4: lineElement = this.line4; break;
       case 5: lineElement = this.line5; break;
+      case 6: lineElement = this.line6; break;
+      case 7: lineElement = this.line7; break;
     }
 
     if (lineElement && this.codeScroller) {
@@ -252,7 +346,7 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
       const elementTop = element.offsetTop;
       const containerHeight = container.clientHeight;
       const elementHeight = element.clientHeight;
-      
+
       container.scrollTo({
         top: elementTop - (containerHeight / 2) + (elementHeight / 2),
         behavior: 'smooth'
@@ -288,7 +382,7 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
 
     window.addEventListener('touchmove', this.onTouchMove, { passive: false });
     window.addEventListener('touchend', this.onTouchEnd);
-  }
+  };
 
   private onTouchMove = (event: TouchEvent): void => {
     if (!this.isResizing) return;
@@ -314,8 +408,8 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     switch (action) {
       case 'start': return '#3b82f6';
       case 'compare': return '#f59e0b';
-      case 'found': return '#10b981';
-      case 'not_found': return '#ef4444';
+      case 'swap': return '#ec4899';
+      case 'complete': return '#10b981';
       default: return '#6b7280';
     }
   }
@@ -324,8 +418,8 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     switch (action) {
       case 'start': return '🚀';
       case 'compare': return '🔍';
-      case 'found': return '✅';
-      case 'not_found': return '❌';
+      case 'swap': return '🔄';
+      case 'complete': return '✅';
       default: return '•';
     }
   }
@@ -334,22 +428,46 @@ export class LinearSearchComponent implements OnDestroy, AfterViewChecked, OnIni
     switch (action) {
       case 'start': return 'STARTING';
       case 'compare': return 'COMPARING';
-      case 'found': return 'FOUND';
-      case 'not_found': return 'NOT FOUND';
+      case 'swap': return 'SWAPPING';
+      case 'complete': return 'COMPLETE';
       default: return action.toUpperCase();
     }
   }
 
-  isCurrentIndex(index: number): boolean {
-    return this.currentStep?.variables?.i === index;
+  isComparingIndex(index: number): boolean {
+    if (!this.currentStep) return false;
+    const j = this.currentStep.variables?.j;
+    if (j === undefined) return false;
+    return index === j || index === j + 1;
   }
 
-  isFound(index: number): boolean {
-    return this.currentStep?.action === 'found' && this.isCurrentIndex(index);
+  isSwappingIndex(index: number): boolean {
+    if (!this.currentStep || this.currentStep.action !== 'swap') return false;
+    const j = this.currentStep.variables?.j;
+    if (j === undefined) return false;
+    return index === j || index === j + 1;
   }
 
-  isTarget(value: number): boolean {
-    return value === this.target;
+  isSwappingLeft(index: number): boolean {
+    if (!this.currentStep || this.currentStep.action !== 'swap') return false;
+    const j = this.currentStep.variables?.j;
+    if (j === undefined) return false;
+    return index === j; // Left element (goes UP and RIGHT)
+  }
+
+  isSwappingRight(index: number): boolean {
+    if (!this.currentStep || this.currentStep.action !== 'swap') return false;
+    const j = this.currentStep.variables?.j;
+    if (j === undefined) return false;
+    return index === j + 1; // Right element (goes DOWN and LEFT)
+  }
+
+  isSorted(index: number): boolean {
+    if (!this.currentStep) return false;
+    const n = this.currentStep.variables?.n ?? this.array.length;
+    const i = this.currentStep.variables?.i ?? 0;
+    // Elements from (n - i) onwards are sorted
+    return index >= (n - i);
   }
 
   getSpeedLabel(): string {

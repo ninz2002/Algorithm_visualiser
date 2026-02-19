@@ -8,6 +8,12 @@ interface Algorithm {
   title: string;
   tagline: string;
   route: string;
+  category: string;
+}
+
+interface AlgorithmCategory {
+  name: string;
+  algorithms: Algorithm[];
 }
 
 @Component({
@@ -27,6 +33,13 @@ export class HomeComponent implements OnInit, OnDestroy {
       title: 'Linear Search',
       tagline: 'One element at a time',
       route: '/linear-search',
+      category: 'Searching',
+    },
+    {
+      title: 'Bubble Sort',
+      tagline: 'Bubble the largest to the end',
+      route: '/bubble-sort',
+      category: 'Sorting',
     },
   ];
 
@@ -46,10 +59,25 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.searchSub.unsubscribe();
   }
 
-  get filteredAlgorithms(): Algorithm[] {
-    return this.algorithms.filter(algo =>
+  get categorizedAlgorithms(): AlgorithmCategory[] {
+    const filtered = this.algorithms.filter(algo =>
       algo.title.toLowerCase().includes(this.searchQuery.toLowerCase())
     );
+
+    // Group by category
+    const grouped = filtered.reduce((acc, algo) => {
+      if (!acc[algo.category]) {
+        acc[algo.category] = [];
+      }
+      acc[algo.category].push(algo);
+      return acc;
+    }, {} as Record<string, Algorithm[]>);
+
+    // Convert to array format
+    return Object.entries(grouped).map(([name, algorithms]) => ({
+      name,
+      algorithms,
+    }));
   }
 
   goToAlgorithm(route: string): void {

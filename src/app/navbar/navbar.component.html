@@ -19,20 +19,20 @@
 
     <!-- RIGHT: MODE -->
     <div class="navbar-right">
-      <button
+     <button
         class="mode-toggle"
-        [class.active]="mode === 'learning'"
+        [class.active]="currentRoute === 'learning'"
+        [disabled]="currentRoute === 'home'"
         (click)="setMode('learning')">
         Learning
       </button>
 
       <button
         class="mode-toggle"
-        [class.active]="mode === 'challenge'"
+        [class.active]="currentRoute === 'challenge'"
+        [disabled]="currentRoute === 'home'"
         (click)="setMode('challenge')">
         Challenge
       </button>
-    </div>
-
   </div>
 </div>

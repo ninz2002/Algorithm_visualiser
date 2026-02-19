@@ -19,4 +19,14 @@ export class ApiService {
       }
     );
   }
+
+  getBubbleSortSteps(): Observable<any> {
+  return this.http.post<any>(
+    'http://localhost:5000/api/bubble-sort',
+    {
+      array: [5, 3, 4]
+    }
+  );
+}
+
 }

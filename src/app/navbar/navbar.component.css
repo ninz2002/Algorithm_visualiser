@@ -109,3 +109,7 @@
     0 4px 12px rgba(139, 92, 246, 0.4),
     0 0 20px rgba(236, 72, 153, 0.3);
 }
+.mode-toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
