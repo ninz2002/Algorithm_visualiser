@@ -1,28 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import {
   ChallengeSet,
   ChallengeMode,
   ModeStatus,
   ChallengeModeData,
-  ChallengeQuestion
+  ChallengeQuestion,
 } from './challenge-definitions/challenge.types';
-
 import { LinearSearchChallenge } from './challenge-definitions/linear-search.challenge';
 import { BubbleSortChallenge } from './challenge-definitions/bubble-sort.challenge';
 import { NQueensChallenge } from './challenge-definitions/n-queens.challenge';
+import { DfsChallenge } from './challenge-definitions/dfs.challenge';
+import { DfsConstructComponent } from './construct/dfs.construct';
+import { NQueensConstructComponent } from './construct/n-queens.construct';
 
 @Component({
   selector: 'app-challenge',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DfsConstructComponent, NQueensConstructComponent],
   templateUrl: './challenge.component.html',
   styleUrls: ['./challenge.component.css'],
 })
 export class ChallengeComponent implements OnInit {
-
   // ============================================
   // STATE
   // ============================================
@@ -30,59 +30,61 @@ export class ChallengeComponent implements OnInit {
   algorithmId = '';
   challengeSet: ChallengeSet | null = null;
 
-  readonly modes: ChallengeMode[] = ['quiz', 'trace', 'predict', 'construct'];
+  get availableModes(): ChallengeMode[] {
+    const base: ChallengeMode[] = ['quiz', 'trace', 'predict'];
+    if (this.challengeSet?.construct) {
+      base.push('construct');
+    }
+    return base;
+  }
 
   currentMode: ChallengeMode = 'quiz';
   currentQuestionIndex = 0;
-
-  modeProgress: Record<ChallengeMode, ModeStatus> = {
-    quiz: 'not-started',
-    trace: 'locked',
-    predict: 'locked',
-    construct: 'locked',
-  };
+  modeProgress: Partial<Record<ChallengeMode, ModeStatus>> = {};
 
   selectedAnswer: string | null = null;
   feedback = '';
   explanation = '';
   isCorrect = false;
-
   showModeCompletion = false;
-
   attemptCount = 0;
   showHint = false;
   isQuestionLocked = false;
-
   canProceedAfterFailure = false;
 
-  // ===============================
-  // CONSTRUCT STATE
-  // ===============================
-
-  constructBoard: number[] = [];
-  constructCurrentRow = 0;
-
-  // Cells to highlight as "conflicting" — only the path from offending queen to clicked cell
-  constructAttackCells = new Set<string>();
-
-  // The cell currently shaking (invalid click)
-  shakingCell: string | null = null;
-
-  constructStatus: 'playing' | 'success' = 'playing';
-  constructSize = 4;
-
-  // Backtrack hint — shown only after user has tried 2+ invalid cells in current row
-  showBacktrackHint = false;
-
-  // How many invalid clicks the user has made in the current row
-  failedAttemptsInRow = 0;
+  /** Tracks if the full challenge set is complete (no construct mode) */
+  showFinalCompletion = false;
 
   // ============================================
-  // UI HELPERS (REQUIRED BY TEMPLATE)
+  // CONSTRUCT TYPE
+  // Derived from challengeSet.construct.type —
+  // drives which construct template block renders.
+  // ============================================
+
+  get constructType(): string {
+    return this.challengeSet?.construct?.type ?? 'none';
+  }
+
+  // ============================================
+  // N-QUEENS CONSTRUCT: callback from child component
+  // ============================================
+
+  onNQueensConstructComplete(): void {
+    this.modeProgress.construct = 'completed';
+    setTimeout(() => {
+      this.showModeCompletion = true;
+    }, 800);
+  }
+
+  // ============================================
+  // UI HELPERS
   // ============================================
 
   isModeUnlocked(mode: ChallengeMode): boolean {
-    return this.modeProgress[mode] !== 'locked';
+    return (
+      this.modeProgress[mode] !== 'locked' &&
+      this.modeProgress[mode] !== undefined
+    );
   }
 
   isModeCompleted(mode: ChallengeMode): boolean {
@@ -112,6 +114,7 @@ export class ChallengeComponent implements OnInit {
   getModeLockReason(mode: ChallengeMode): string {
     if (mode === 'trace') return 'Complete Quiz first to unlock Trace';
     if (mode === 'predict') return 'Complete Trace first to unlock Predict';
+    if (mode === 'construct') return 'Complete Predict first to unlock Construct';
     return '';
   }
 
@@ -140,24 +143,34 @@ export class ChallengeComponent implements OnInit {
     return ((this.currentQuestionIndex + 1) / this.totalQuestions) * 100;
   }
 
+  /** Whether this algorithm has a construct mode */
+  get hasConstruct(): boolean {
+    return !!this.challengeSet?.construct;
+  }
+
+  /** The mode that follows the current one, or null if we're at the end */
+  get nextMode(): ChallengeMode | null {
+    if (this.currentMode === 'quiz') return 'trace';
+    if (this.currentMode === 'trace') return 'predict';
+    if (this.currentMode === 'predict' && this.hasConstruct) return 'construct';
+    return null;
+  }
+
   // ============================================
   // LIFECYCLE
   // ============================================
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  constructor(private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       this.algorithmId = params['algorithm'];
       this.loadChallengeSet();
-
       this.currentMode = 'quiz';
       this.currentQuestionIndex = 0;
       this.resetQuestionState();
       this.showModeCompletion = false;
+      this.showFinalCompletion = false;
     });
   }
 
@@ -176,6 +189,9 @@ export class ChallengeComponent implements OnInit {
       case 'n-queens':
         this.challengeSet = NQueensChallenge;
         break;
+      case 'dfs':
+        this.challengeSet = DfsChallenge;
+        break;
       default:
         console.error('No challenge set found for:', this.algorithmId);
         this.challengeSet = null;
@@ -184,12 +200,12 @@ export class ChallengeComponent implements OnInit {
 
     this.currentMode = 'quiz';
     this.currentQuestionIndex = 0;
-
+    this.showFinalCompletion = false;
     this.modeProgress = {
       quiz: 'not-started',
       trace: 'locked',
       predict: 'locked',
-      construct: 'locked',
+      ...(this.challengeSet?.construct ? { construct: 'locked' } : {}),
     };
   }
 
@@ -200,14 +216,23 @@ export class ChallengeComponent implements OnInit {
   switchMode(mode: ChallengeMode): void {
     if (this.modeProgress[mode] === 'locked') return;
 
-    this.currentMode = mode;
-
     if (mode === 'construct') {
-      this.initConstruct();
+      if (!this.challengeSet?.construct) {
+        console.warn('Construct mode not available for this algorithm');
+        return;
+      }
+      this.currentMode = mode;
+      this.showModeCompletion = false;
+      // Both n-queens and dfs construct components self-initialise via ngOnInit
+      if (this.modeProgress.construct === 'not-started') {
+        this.modeProgress.construct = 'in-progress';
+      }
       return;
     }
 
+    this.currentMode = mode;
     this.currentQuestionIndex = 0;
+    this.showModeCompletion = false;
     this.resetQuestionState();
 
     if (this.modeProgress[mode] === 'not-started') {
@@ -215,170 +240,15 @@ export class ChallengeComponent implements OnInit {
     }
   }
 
-  initConstruct(): void {
-    this.constructSize = this.challengeSet?.construct?.boardSize ?? 4;
-    this.constructBoard = Array(this.constructSize).fill(-1);
-    this.constructCurrentRow = 0;
-    this.constructAttackCells.clear();
-    this.shakingCell = null;
-    this.constructStatus = 'playing';
-    this.showBacktrackHint = false;
-    this.failedAttemptsInRow = 0;
-
-    if (this.modeProgress.construct === 'not-started') {
-      this.modeProgress.construct = 'in-progress';
-    }
-  }
-
   // ============================================
-  // CONSTRUCT: CELL CLICK
+  // DFS CONSTRUCT: callback from child component
   // ============================================
 
-  onConstructCellClick(row: number, col: number): void {
-    if (this.constructStatus !== 'playing') return;
-    if (row !== this.constructCurrentRow) return;
-
-    if (!this.isSafe(row, col)) {
-      // Highlight only the conflicting path from the offending queen to this cell
-      this.highlightConflict(row, col);
-
-      // Shake the clicked cell
-      this.triggerShake(row, col);
-
-      // Track failed attempts in this row
-      this.failedAttemptsInRow++;
-
-      // Only show the hint when the user has tried ALL columns in this row
-      // and every single one was invalid — meaning they must backtrack
-      if (this.failedAttemptsInRow >= this.constructSize && !this.hasValidMove(row)) {
-        this.showBacktrackHint = true;
-      }
-
-      return;
-    }
-
-    // Valid placement — clear highlights, reset row attempt counter and hint
-    this.constructAttackCells.clear();
-    this.showBacktrackHint = false;
-    this.failedAttemptsInRow = 0;
-
-    // Place queen
-    this.constructBoard[row] = col;
-    this.constructCurrentRow++;
-
-    if (this.constructCurrentRow === this.constructSize) {
-      this.constructStatus = 'success';
-      this.modeProgress.construct = 'completed';
-    }
-  }
-
-  // ============================================
-  // CONSTRUCT: CONFLICT HIGHLIGHTING
-  // ============================================
-
-  /**
-   * Instead of highlighting ALL attack cells, we find WHICH placed queen
-   * is in conflict with (targetRow, targetCol), then draw only the
-   * cells along the conflicting row or diagonal between them.
-   */
-  highlightConflict(targetRow: number, targetCol: number): void {
-    this.constructAttackCells.clear();
-
-    for (let r = 0; r < targetRow; r++) {
-      const c = this.constructBoard[r];
-      if (c === -1) continue;
-
-      const sameCol = c === targetCol;
-      const sameDiag = Math.abs(c - targetCol) === Math.abs(r - targetRow);
-
-      if (sameCol || sameDiag) {
-        // Draw path from the offending queen to the target cell
-        this.drawPath(r, c, targetRow, targetCol);
-        // Mark the offending queen cell itself prominently
-        this.constructAttackCells.add(`${r}-${c}`);
-      }
-    }
-  }
-
-  /**
-   * Draw every cell along the straight line from (r1,c1) to (r2,c2).
-   * Works for columns (c1===c2) and diagonals (|dc|===|dr|).
-   */
-  private drawPath(r1: number, c1: number, r2: number, c2: number): void {
-    const dr = Math.sign(r2 - r1);
-    const dc = Math.sign(c2 - c1);
-
-    let r = r1;
-    let c = c1;
-
-    while (r !== r2 || c !== c2) {
-      this.constructAttackCells.add(`${r}-${c}`);
-      r += dr;
-      c += dc;
-    }
-    // Include the target cell too
-    this.constructAttackCells.add(`${r2}-${c2}`);
-  }
-
-  // ============================================
-  // CONSTRUCT: SHAKE ANIMATION
-  // ============================================
-
-  triggerShake(row: number, col: number): void {
-    const key = `${row}-${col}`;
-    this.shakingCell = key;
-
-    // Clear shake class after animation completes (500ms)
+  onDfsTraversalComplete(): void {
+    this.modeProgress.construct = 'completed';
     setTimeout(() => {
-      if (this.shakingCell === key) {
-        this.shakingCell = null;
-      }
-    }, 500);
-  }
-
-  isShaking(row: number, col: number): boolean {
-    return this.shakingCell === `${row}-${col}`;
-  }
-
-  // ============================================
-  // CONSTRUCT: SAFETY CHECKS
-  // ============================================
-
-  isSafe(row: number, col: number): boolean {
-    for (let r = 0; r < row; r++) {
-      const c = this.constructBoard[r];
-      if (c === col) return false;
-      if (Math.abs(c - col) === Math.abs(r - row)) return false;
-    }
-    return true;
-  }
-
-  hasValidMove(row: number): boolean {
-    for (let col = 0; col < this.constructSize; col++) {
-      if (this.isSafe(row, col)) return true;
-    }
-    return false;
-  }
-
-  // ============================================
-  // CONSTRUCT: CONTROLS
-  // ============================================
-
-  backtrack(): void {
-    if (this.constructCurrentRow === 0) return;
-
-    this.constructCurrentRow--;
-    this.constructBoard[this.constructCurrentRow] = -1;
-
-    this.constructAttackCells.clear();
-    this.shakingCell = null;
-    this.constructStatus = 'playing';
-    this.showBacktrackHint = false;
-    this.failedAttemptsInRow = 0;
-  }
-
-  resetConstruct(): void {
-    this.initConstruct();
+      this.showModeCompletion = true;
+    }, 800);
   }
 
   // ============================================
@@ -394,42 +264,36 @@ export class ChallengeComponent implements OnInit {
 
     if (!this.isCorrect) {
       const max = this.currentQuestion.maxAttempts ?? 3;
-
       if (this.attemptCount >= 2 && this.currentQuestion.hint) {
         this.showHint = true;
       }
-
       if (this.attemptCount >= max) {
         this.isQuestionLocked = true;
         this.canProceedAfterFailure = true;
-        this.feedback = '❌ Incorrect. Maximum attempts reached. Please review the explanation.';
+        this.feedback =
+          '❌ Incorrect. Maximum attempts reached. Please review the explanation.';
         this.explanation = this.currentQuestion.explanation;
         return;
       }
-
       this.feedback = '❌ Incorrect. Try again.';
       setTimeout(() => {
         this.selectedAnswer = null;
         this.feedback = '';
       }, 1200);
-
       return;
     }
 
     this.feedback = '✅ Correct!';
     this.explanation = this.currentQuestion.explanation;
-
     setTimeout(() => this.nextQuestion(), 2500);
   }
 
   nextQuestion(): void {
     this.currentQuestionIndex++;
-
     if (this.currentQuestionIndex >= this.totalQuestions) {
       this.completeMode();
       return;
     }
-
     this.resetQuestionState();
   }
 
@@ -450,19 +314,29 @@ export class ChallengeComponent implements OnInit {
 
   completeMode(): void {
     this.modeProgress[this.currentMode] = 'completed';
-    this.showModeCompletion = true;
 
-    if (this.currentMode === 'quiz') this.modeProgress.trace = 'not-started';
-    if (this.currentMode === 'trace') this.modeProgress.predict = 'not-started';
-    if (this.currentMode === 'predict') this.modeProgress.construct = 'not-started';
+    if (this.currentMode === 'quiz') {
+      this.modeProgress.trace = 'not-started';
+    } else if (this.currentMode === 'trace') {
+      this.modeProgress.predict = 'not-started';
+    } else if (this.currentMode === 'predict' && this.hasConstruct) {
+      this.modeProgress.construct = 'not-started';
+    }
+
+    // No construct mode → show final completion after predict
+    if (this.currentMode === 'predict' && !this.hasConstruct) {
+      this.showFinalCompletion = true;
+      return;
+    }
+
+    this.showModeCompletion = true;
   }
 
   continueToNextMode(): void {
     this.showModeCompletion = false;
-
-    if (this.currentMode === 'quiz') this.switchMode('trace');
-    else if (this.currentMode === 'trace') this.switchMode('predict');
-    else if (this.currentMode === 'predict') this.switchMode('construct');
+    if (this.nextMode) {
+      this.switchMode(this.nextMode);
+    }
   }
 
   // ============================================

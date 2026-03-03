@@ -65,5 +65,11 @@ export interface ChallengeSet {
   quiz: ChallengeModeData;
   trace: ChallengeModeData;
   predict: ChallengeModeData;
-  construct?: ConstructModeData;
+  construct?: {
+  boardSize?: number;
+  title: string;
+  icon: string;
+  description?: string;
+  type: 'n-queens' | 'dfs' | 'none';
+}
 }

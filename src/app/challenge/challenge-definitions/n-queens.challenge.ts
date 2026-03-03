@@ -176,6 +176,7 @@ export const NQueensChallenge: ChallengeSet = {
   },
 
   construct: {
+    type: 'n-queens',
     title: 'construct',
     icon: '🛠️',
     boardSize: 4,

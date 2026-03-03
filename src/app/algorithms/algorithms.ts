@@ -21,6 +21,11 @@ export interface NQueensStep {
   action: 'place' | 'remove';
 }
 
+export interface DfsStep {
+  node: string;
+  action: 'visit' | 'backtrack';
+}
+
 // ============================================
 // LINEAR SEARCH
 // ============================================

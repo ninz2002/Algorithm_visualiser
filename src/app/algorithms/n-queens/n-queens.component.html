@@ -216,7 +216,7 @@
                 <div class="status-info">
                   <div class="status-message">{{ currentStep.message }}</div>
                   <div class="status-detail"
-                       *ngIf="currentStep.variables?.row !== undefined || currentStep.variables?.col !== undefined">
+                       *ngIf="currentStep.variables.row !== undefined || currentStep.variables.col !== undefined">
                     <ng-container *ngIf="currentStep.variables.row !== undefined">
                       Row <span class="highlight">{{ currentStep.variables.row }}</span>
                     </ng-container>

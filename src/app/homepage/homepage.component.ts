@@ -42,11 +42,18 @@ export class HomeComponent implements OnInit, OnDestroy {
       category: 'Sorting',
     },
     {
+      title: "Depth-First Search (DFS)",
+      tagline: "Explore as deep as possible before backtracking",
+      route: "/dfs",
+      category: "Graph Traversal"
+    },
+    {
       title: "N - Queens",
       tagline: "Place N queens on an N x N chessboard",
       route: "/n-queens",
       category: "Backtracking"
     },
+    
   ];
 
   constructor(

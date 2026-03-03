@@ -4,6 +4,7 @@ import { LinearSearchComponent } from './algorithms/linear-search/linear-search.
 import { ChallengeComponent } from './challenge/challenge.component';
 import { BubbleSortComponent } from './algorithms/bubble-sort/bubble-sort.component';
 import { NQueensComponent } from './algorithms/n-queens/n-queens.component';
+import { DfsComponent } from './algorithms/dfs/dfs.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -11,6 +12,6 @@ export const routes: Routes = [
   { path: 'challenge/:algorithm', component: ChallengeComponent },
   { path: 'bubble-sort', component: BubbleSortComponent },
   { path: 'n-queens', component: NQueensComponent },
-
+  { path: 'dfs', component: DfsComponent },
 ];
 

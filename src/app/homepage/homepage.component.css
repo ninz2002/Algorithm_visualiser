@@ -289,9 +289,83 @@
   }
 }
 
+.dfs-preview {
+  position: relative;
+  width: 120px;
+  height: 90px;
+}
+
+.dfs-edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dfs-edge {
+  stroke: rgba(139, 92, 246, 0.3);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: drawEdge 0.4s ease forwards var(--d);
+}
+
+@keyframes drawEdge {
+  to { stroke-dashoffset: 0; }
+}
+
+.dfs-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(139, 92, 246, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fira Code', monospace;
+  opacity: 0;
+  animation: nodeAppear 0.3s ease forwards var(--d);
+}
+
+/* Already-visited nodes on the DFS path */
+.dfs-node.visited {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.7);
+  color: #c4b5fd;
+}
+
+/* Currently-being-explored node */
+.dfs-node.active {
+  background: rgba(236, 72, 153, 0.25);
+  border-color: #ec4899;
+  color: #f9a8d4;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+  animation: nodeAppear 0.3s ease forwards var(--d),
+             activePulse 1.2s ease-in-out 1s infinite;
+}
+
+@keyframes nodeAppear {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes activePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(236, 72, 153, 0.4); }
+  50%       { box-shadow: 0 0 16px rgba(236, 72, 153, 0.8); }
+}
+
+
 /* INFO */
 .tile-info {
-  padding: 20px;
+  padding: 10px 20px;
 }
 
 .tile-info h3 {
