@@ -90,6 +90,34 @@ INSERT OR IGNORE INTO algorithms (
     1
 ))
 
+cursor.execute("""
+INSERT OR IGNORE INTO algorithms (
+    key,
+    name,
+    short_description,
+    time_complexity,
+    best_case,
+    average_case,
+    worst_case,
+    space_complexity,
+    difficulty,
+    category,
+    is_active
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+""", (
+    "dfs",
+    "Depth-First Search (DFS)",
+    "DFS explores as far as possible along each branch before backtracking. It's like going down a maze and exploring one path fully before trying another.",
+    "O(V + E)",
+    "O(V + E)",
+    "O(V + E)",
+    "O(V + E)",
+    "O(V)",
+    "Intermediate",
+    "Graph Traversal",
+    1
+))
+
 conn.commit()
 conn.close()
 

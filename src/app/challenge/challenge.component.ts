@@ -200,12 +200,23 @@ export class ChallengeComponent implements OnInit {
 
     this.currentMode = 'quiz';
     this.currentQuestionIndex = 0;
+<<<<<<< Updated upstream
     this.showFinalCompletion = false;
     this.modeProgress = {
       quiz: 'not-started',
       trace: 'locked',
       predict: 'locked',
       ...(this.challengeSet?.construct ? { construct: 'locked' } : {}),
+=======
+
+   this.modeProgress = {
+    quiz: 'not-started',
+    trace: 'locked',
+    predict: 'locked',
+    ...(this.challengeSet?.construct
+      ? { construct: 'locked' }
+      : {})
+>>>>>>> Stashed changes
     };
   }
 

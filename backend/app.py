@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+import random
+import string
 
 app = Flask(__name__)
 CORS(app)
@@ -46,7 +48,8 @@ WHERE key = ?
         "category": row[7]
     })
 
-#linear search algorithm with step-by-step tracing
+#****************Linear Search Algorithm Endpoint****************#
+
 @app.route("/linear-search", methods=["POST"])
 def linear_search():
     body = request.json
@@ -108,6 +111,7 @@ def linear_search():
 
     return jsonify({"steps": steps})
 
+#****************Bubble Sort Algorithm Endpoint****************#
 
 @app.route('/bubble-sort', methods=['POST'])
 def bubble_sort():
@@ -179,6 +183,7 @@ def bubble_sort():
 
     return jsonify({"steps": steps})
 
+#****************N-Queens Algorithm Endpoint****************#
 
 @app.route('/n-queens', methods=['POST'])
 def n_queens():
@@ -275,7 +280,215 @@ def n_queens():
         "solutionFound": solved
     })
 
+#****************DFS Algorithm Endpoint****************#
 
+@app.route('/dfs', methods=['POST'])
+def dfs():
+
+    body = request.json
+
+    if not body or "nodes" not in body or "edges" not in body:
+        return jsonify({"error": "Invalid input"}), 400
+
+    n = body["nodes"]
+    e = body["edges"]
+
+    # --------------------------------------------
+    # VALIDATION
+    # --------------------------------------------
+
+    if n < 4 or n > 10:
+        return jsonify({"error": "Nodes must be between 4 and 10"}), 400
+
+    min_edges = n - 1
+    max_edges = min_edges + (n // 2)
+
+    if e < min_edges or e > max_edges:
+        return jsonify({
+            "error": f"Edges must be between {min_edges} and {max_edges}"
+        }), 400
+
+    # --------------------------------------------
+    # CREATE NODES
+    # --------------------------------------------
+
+    nodes = list(string.ascii_uppercase[:n])
+
+    # --------------------------------------------
+    # GENERATE CONNECTED GRAPH (SPANNING TREE)
+    # --------------------------------------------
+
+    edges = set()
+    adjacency = {node: set() for node in nodes}
+
+    # Create spanning tree to ensure connectivity
+    for i in range(1, n):
+        node1 = nodes[i]
+        node2 = random.choice(nodes[:i])
+
+        edge = tuple(sorted([node1, node2]))
+        edges.add(edge)
+
+        adjacency[node1].add(node2)
+        adjacency[node2].add(node1)
+
+    # --------------------------------------------
+    # ADD EXTRA RANDOM EDGES
+    # --------------------------------------------
+
+    while len(edges) < e:
+        node1, node2 = random.sample(nodes, 2)
+        edge = tuple(sorted([node1, node2]))
+
+        if edge not in edges:
+            edges.add(edge)
+            adjacency[node1].add(node2)
+            adjacency[node2].add(node1)
+
+    # --------------------------------------------
+    # SORT ADJACENCY LISTS (DETERMINISTIC DFS)
+    # --------------------------------------------
+
+    adjacency = {
+        node: sorted(list(neighbors))
+        for node, neighbors in adjacency.items()
+    }
+
+    # --------------------------------------------
+    # STACK-BASED DFS WITH STEP RECORDING
+    # --------------------------------------------
+
+    visited = set()
+    steps = []
+    step_no = 1
+
+    for start_node in sorted(nodes):
+
+        if start_node in visited:
+            continue
+
+        # Start new component
+        stack = [start_node]
+
+        steps.append({
+            "step": step_no,
+            "line": 1,
+            "action": "start_component",
+            "variables": {"start": start_node},
+            "data": {
+                "stack": stack.copy(),
+                "visited": sorted(list(visited))
+            },
+            "message": f"Starting DFS from node {start_node}"
+        })
+        step_no += 1
+
+        while stack:
+
+            current = stack.pop()
+
+            steps.append({
+                "step": step_no,
+                "line": 2,
+                "action": "pop",
+                "variables": {"node": current},
+                "data": {
+                    "stack": stack.copy(),
+                    "visited": sorted(list(visited))
+                },
+                "message": f"Popped {current} from stack"
+            })
+            step_no += 1
+
+            if current in visited:
+                steps.append({
+                    "step": step_no,
+                    "line": 3,
+                    "action": "skip",
+                    "variables": {"node": current},
+                    "data": {
+                        "stack": stack.copy(),
+                        "visited": sorted(list(visited))
+                    },
+                    "message": f"{current} already visited. Skipping."
+                })
+                step_no += 1
+                continue
+
+            visited.add(current)
+
+            steps.append({
+                "step": step_no,
+                "line": 4,
+                "action": "visit",
+                "variables": {"node": current},
+                "data": {
+                    "stack": stack.copy(),
+                    "visited": sorted(list(visited))
+                },
+                "message": f"Visited {current}"
+            })
+            step_no += 1
+
+            # Push neighbors in reverse order
+            neighbors = adjacency[current]
+
+            for neighbor in reversed(neighbors):
+                if neighbor not in visited and neighbor not in stack:
+                    stack.append(neighbor)
+
+
+                    steps.append({
+                        "step": step_no,
+                        "line": 5,
+                        "action": "push",
+                        "variables": {
+                            "from": current,
+                            "to": neighbor
+                        },
+                        "data": {
+                            "stack": stack.copy(),
+                            "visited": sorted(list(visited))
+                        },
+                        "message": f"Pushed {neighbor} onto stack"
+                    })
+                    step_no += 1
+
+        # Component complete
+        steps.append({
+            "step": step_no,
+            "line": 6,
+            "action": "complete_component",
+            "variables": {},
+            "data": {
+                "stack": [],
+                "visited": sorted(list(visited))
+            },
+            "message": f"Completed component starting from {start_node}"
+        })
+        step_no += 1
+
+    # DFS Complete
+    steps.append({
+        "step": step_no,
+        "line": 7,
+        "action": "complete_all",
+        "variables": {},
+        "data": {
+            "stack": [],
+            "visited": sorted(list(visited))
+        },
+        "message": "DFS traversal complete"
+    })
+
+    return jsonify({
+        "graph": {
+            "nodes": nodes,
+            "edges": list(edges),
+            "adjacency": adjacency
+        },
+        "steps": steps
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
